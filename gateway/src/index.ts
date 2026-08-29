@@ -398,27 +398,24 @@ app.get('/api/midnight/contract-state', async (req: Request, res: Response): Pro
     const totalProofs = auditLog.getEvents().length;
     const lastEvent = auditLog.getEvents()[0];
 
-    // NOTE: contractAddress, zkVerifyingKeyHash, and zkProverKeyHash below are
-    // deterministic outputs from the Midnight Compact compiler run locally on
-    // scope-policy.compact. They are NOT live chain queries — Midnight Testnet
-    // does not yet expose a public RPC for key lookups. These values are stable
-    // across deployments for the same compiled circuit.
     res.json({
       success: true,
       network: 'Midnight Testnet Preview',
       chainId: 'midnight-testnet-0420',
-      // Deterministic compiler output — stable for this circuit version
-      contractAddress: '0x9f88c0a72199b0c2e334f51e0892781a0b3882711',
+      // Placeholder — pending live Midnight chain deployment & RPC integration.
+      // The circuit is compiled locally (see contracts/BUILD_LOG.md); on-chain
+      // deployment requires Midnight Testnet public write access (not yet available).
+      contractAddress: null,
       compilerVersion: 'compactc v0.19.0 (ZKIR Target)',
-      circuitStatus: 'compiled-locally',   // honest: compiled locally, not live chain query
+      circuitStatus: 'local-simulation',
       nativeTokens: {
         gasToken: 'DUST (Shielded Execution Fuel)',
         stakingToken: 'tNIGHT'
       },
       ledgerState: {
-        // Real runtime values — derived from actual audit log in memory
+        // Real in-memory values from the running audit log:
         verification_counter: totalProofs,
-        compliance_verified: true,
+        compliance_verified: totalProofs > 0,
         last_policy_commitment: lastEvent?.policyName
           ? `0x${Buffer.from(lastEvent.policyName).toString('hex').padEnd(64, '0')}`
           : null,
@@ -426,13 +423,14 @@ app.get('/api/midnight/contract-state', async (req: Request, res: Response): Pro
           ? `0x${Buffer.from(lastEvent.proofId).toString('hex').padEnd(64, '0')}`
           : null
       },
-      // Compiler-derived verifying/prover key hashes (deterministic per circuit build)
-      zkVerifyingKeyHash: '0x4f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a',
-      zkProverKeyHash: '0x8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c',
+      // Placeholder — verifying/prover key hashes are only available after
+      // on-chain deployment, which requires Midnight Testnet write access.
+      zkVerifyingKeyHash: null,
+      zkProverKeyHash: null,
       proofsGenerated: totalProofs,
-      // Benchmarked locally on the compact-runtime simulation (not live chain measurement)
-      averageVerificationLatency: '6.2ms',
-      estimatedDustPerProof: '0.0042 DUST'
+      // Placeholder — latency measured in local compact-runtime simulation, not on-chain.
+      averageVerificationLatency: '~6ms (local simulation)',
+      estimatedDustPerProof: '0.0042 DUST (estimated)'
     });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });

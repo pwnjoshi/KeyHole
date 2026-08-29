@@ -20,8 +20,10 @@ export const LaceWalletModal: React.FC<LaceWalletModalProps> = ({
   const [manualAddress, setManualAddress] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [dustBalance, setDustBalance] = useState('142.50');
-  const [nightBalance, setNightBalance] = useState('1,250.00');
+  // Balance defaults to '—' until a real CIP-30 query succeeds or demo path sets sandbox labels.
+  const [dustBalance, setDustBalance] = useState('—');
+  const [nightBalance, setNightBalance] = useState('—');
+  const [balanceSource, setBalanceSource] = useState<'live' | 'sandbox' | null>(null);
 
   // Escape key listener
   useEffect(() => {
@@ -44,12 +46,31 @@ export const LaceWalletModal: React.FC<LaceWalletModalProps> = ({
       if (midnight?.mnLace) {
         const api = await midnight.mnLace.enable();
         const address = await api.getChangeAddress();
+        // Try to query real balance via CIP-30; gracefully fall back if unavailable.
+        try {
+          const rawBalance = await api.getBalance();
+          // CIP-30 returns CBOR-encoded balance in lovelace; display raw hex for now
+          // pending Midnight-specific token parsing.
+          setDustBalance(rawBalance ? `${rawBalance}` : '—');
+          setNightBalance('—');
+          setBalanceSource('live');
+        } catch {
+          setBalanceSource(null);
+        }
         onConnect(address);
         return;
       } else if (cardano?.lace) {
         const api = await cardano.lace.enable();
         const usedAddresses = await api.getUsedAddresses();
         const address = usedAddresses[0] || (await api.getChangeAddress());
+        try {
+          const rawBalance = await api.getBalance();
+          setDustBalance(rawBalance ? `${rawBalance}` : '—');
+          setNightBalance('—');
+          setBalanceSource('live');
+        } catch {
+          setBalanceSource(null);
+        }
         onConnect(address);
         return;
       } else {
@@ -66,6 +87,10 @@ export const LaceWalletModal: React.FC<LaceWalletModalProps> = ({
 
   const handleConnectDemoTestnetWallet = () => {
     const demoTestnetAddr = 'mn_testnet1qqv8f892a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5';
+    // Demo path: show clearly labelled sandbox values, not hardcoded numbers passed off as live.
+    setDustBalance('142.50');
+    setNightBalance('1,250.00');
+    setBalanceSource('sandbox');
     onConnect(demoTestnetAddr);
   };
 
@@ -157,23 +182,33 @@ export const LaceWalletModal: React.FC<LaceWalletModalProps> = ({
               </div>
             </div>
 
-            {/* Testnet Token Balances (illustrative — Midnight Testnet does not yet expose a CIP-30 balance query API) */}
+            {/* Testnet Token Balances */}
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                 <span className="text-[10px] uppercase font-bold text-slate-400 font-mono block">DUST (Shielded Gas)</span>
-                <span className="font-bold text-indigo-700 text-base font-mono">{dustBalance} DUST</span>
-                <p className="text-[9px] text-slate-500 font-sans">Illustrative testnet balance</p>
+                <span className="font-bold text-indigo-700 text-base font-mono">{dustBalance !== '—' ? `${dustBalance} DUST` : '—'}</span>
+                <p className="text-[9px] text-slate-500 font-sans">
+                  {balanceSource === 'live' ? 'Live (CIP-30 wallet)' : balanceSource === 'sandbox' ? 'Sandbox demo value' : 'Not available'}
+                </p>
               </div>
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                 <span className="text-[10px] uppercase font-bold text-slate-400 font-mono block">tNIGHT (Testnet Token)</span>
-                <span className="font-bold text-slate-900 text-base font-mono">{nightBalance} tNIGHT</span>
-                <p className="text-[9px] text-slate-500 font-sans">Illustrative testnet balance</p>
+                <span className="font-bold text-slate-900 text-base font-mono">{nightBalance !== '—' ? `${nightBalance} tNIGHT` : '—'}</span>
+                <p className="text-[9px] text-slate-500 font-sans">
+                  {balanceSource === 'live' ? 'Live (CIP-30 wallet)' : balanceSource === 'sandbox' ? 'Sandbox demo value' : 'Not available'}
+                </p>
               </div>
             </div>
 
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-1 text-slate-600">
               <span className="font-bold text-slate-900 block">Active Network: Midnight Testnet Preview (Chain ID: 4202)</span>
-              <p className="text-[11px]">Your wallet keypair is authorized to anchor ZK scope policies. Balances shown are illustrative — Midnight Testnet does not yet expose a public balance RPC.</p>
+              <p className="text-[11px]">
+                {balanceSource === 'live'
+                  ? 'Balances queried via CIP-30 getBalance(). tNIGHT parsing pending Midnight token format spec.'
+                  : balanceSource === 'sandbox'
+                  ? 'Demo sandbox wallet — balances are illustrative. Connect Lace extension for live data.'
+                  : 'Balances unavailable — Midnight Testnet does not yet expose a public balance RPC.'}
+              </p>
             </div>
 
             <button

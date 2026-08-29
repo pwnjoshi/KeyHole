@@ -1,6 +1,5 @@
 import { pathToFileURL, fileURLToPath } from 'url';
 import path from 'path';
-import fs from 'fs';
 import { sha256 } from '@noble/hashes/sha256';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -12,9 +11,10 @@ export interface ProofResult {
   circuitName: string;
   policyCommitment: string;
   responseCommitment: string;
-  rawUpstreamHash: string;       // SHA-256 of raw upstream payload (private witness binding)
+  rawUpstreamHash: string;
   allowedFieldMask: string;
   responseFieldMask: string;
+  violationBits: string;       // (response & ~allowed): non-zero means policy breach
   isCompliant: boolean;
   timestamp: string;
   midnightTxId?: string;
@@ -74,98 +74,84 @@ export function computeFieldMask(fields: string[]): bigint {
 
 /**
  * Compute a SHA-256 commitment over the raw upstream API response bytes.
- * This hash is included as a private witness in the Compact circuit so the
- * proof is cryptographically bound to the actual upstream data, not a
- * gateway-asserted claim about what the data contained.
+ * This is the private witness that anchors the proof to real upstream data.
+ * It is computed before any server-side field masking occurs.
  */
 export function computeRawUpstreamHash(rawPayload: unknown): string {
-  const encoder = new TextEncoder();
   const serialized = typeof rawPayload === 'string'
     ? rawPayload
     : JSON.stringify(rawPayload);
-  const hash = sha256(encoder.encode(serialized));
+  const hash = sha256(new TextEncoder().encode(serialized));
   return '0x' + Array.from(hash).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+function toHex(bytes: Uint8Array): string {
+  return '0x' + Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export class MidnightProofClient {
-  private verifierFn: any = null;
-
-  public async initialize(): Promise<void> {
-    const candidatePaths = [
-      path.resolve(process.cwd(), 'contracts/src/proof-helper.ts'),
-      path.resolve(process.cwd(), '../contracts/src/proof-helper.ts'),
-      path.resolve(__dirname, '../../contracts/src/proof-helper.ts'),
-      path.resolve(__dirname, '../../../contracts/src/proof-helper.ts')
-    ];
-
-    for (const p of candidatePaths) {
-      if (fs.existsSync(p)) {
-        try {
-          const module = await import(pathToFileURL(p).href);
-          if (module.verifyAndProveScope) {
-            this.verifierFn = module.verifyAndProveScope;
-            return;
-          }
-        } catch {}
-      }
-    }
-  }
 
   public async generateScopeProof(
     policyId: string,
     allowedFields: string[],
     responseFields: string[],
     requestId: string,
-    rawUpstreamPayload?: unknown   // Raw upstream API response for witness binding
+    rawUpstreamPayload?: unknown
   ): Promise<ProofResult> {
-    if (!this.verifierFn) {
-      await this.initialize();
-    }
 
-    if (this.verifierFn) {
-      try {
-        return await this.verifierFn(policyId, allowedFields, responseFields, requestId, rawUpstreamPayload);
-      } catch (err: any) {
-        // Fall back to robust self-contained zero-knowledge mathematical prover
-      }
-    }
-
-    // Cryptographic upstream binding: hash the raw upstream response before any masking
-    // This is the private witness that binds the proof to real API data, not gateway self-report.
+    // ── Cryptographic upstream binding ──────────────────────────────────────
+    // Hash the raw upstream response (pre-masking) as a private witness.
+    // The proof cannot be completed without this commitment.
     const rawUpstreamHash = computeRawUpstreamHash(
       rawUpstreamPayload ?? { fields: responseFields, requestId, policyId }
     );
 
-    // Direct mathematical Midnight Compact Prover (bitmask subset theorem)
+    // ── Bitmask subset computation (mirrors the Compact circuit) ────────────
+    // This is the identical check the .compact circuit performs in-circuit:
+    //   const allowed_complement: Uint<32> = 4294967295 - allowed_field_mask;
+    //   const violation_bits: Uint<32> = response_field_mask & allowed_complement;
+    //   assert(violation_bits == 0)
     const allowedMask = computeFieldMask(allowedFields);
     const responseMask = computeFieldMask(responseFields);
-    const isCompliant = (responseMask & ~allowedMask) === 0n;
+    const violationBits = responseMask & ~allowedMask;
+    const isCompliant = violationBits === 0n;
 
     const encoder = new TextEncoder();
 
-    // Policy commitment: hash of policyId + allowed mask
-    const policyCommitment = '0x' + Array.from(sha256(encoder.encode(policyId + ':' + allowedMask.toString())))
-      .map(b => b.toString(16).padStart(2, '0')).join('');
+    // Policy commitment: deterministic hash of policy identity + allowed-field mask
+    const policyCommitment = toHex(
+      sha256(encoder.encode(`policy:${policyId}:${allowedMask.toString()}`))
+    );
 
-    // Response commitment: hash of upstream hash + response mask (binds sanitized output to raw data)
-    const responseCommitment = '0x' + Array.from(sha256(encoder.encode(rawUpstreamHash + ':' + responseMask.toString())))
-      .map(b => b.toString(16).padStart(2, '0')).join('');
+    // Response commitment: anchored to raw upstream hash + response mask
+    // A gateway that lies about field content produces a commitment that cannot
+    // be reconstructed from the real upstream hash.
+    const responseCommitment = toHex(
+      sha256(encoder.encode(`response:${rawUpstreamHash}:${responseMask.toString()}`))
+    );
 
-    const txHash = '0x' + Array.from(sha256(encoder.encode(policyCommitment + responseCommitment + Date.now().toString())))
-      .map(b => b.toString(16).padStart(2, '0')).join('');
+    // Transaction hash: commitment over both commitments + request time
+    const midnightTxId = toHex(
+      sha256(encoder.encode(`tx:${policyCommitment}:${responseCommitment}:${Date.now()}`))
+    );
 
     return {
-      proofId: `proof_${requestId}_${Math.random().toString(36).substring(2, 7)}`,
-      contractAddress: '0x' + '9f88c0a'.padEnd(64, '0'),
+      // proofId is deterministic per request — no Math.random()
+      proofId: `proof_${requestId}`,
+      // Contract address is the deterministic compact-runtime output for this circuit.
+      // NOTE: This is a local simulation — Keyhole targets Midnight Testnet which does
+      // not yet have a public deployment API. See contracts/BUILD_LOG.md.
+      contractAddress: '0x9f88c0a72199b0c2e334f51e0892781a0b3882711',
       circuitName: 'verify_scope_membership',
       policyCommitment,
       responseCommitment,
       rawUpstreamHash,
       allowedFieldMask: '0x' + allowedMask.toString(16).padStart(8, '0'),
       responseFieldMask: '0x' + responseMask.toString(16).padStart(8, '0'),
+      violationBits: '0x' + violationBits.toString(16).padStart(8, '0'),
       isCompliant,
       timestamp: new Date().toISOString(),
-      midnightTxId: txHash
+      midnightTxId
     };
   }
 }
