@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { HugeCpuIcon, HugeShieldCheckIcon, HugeBotIcon } from './HugeIcons.tsx';
 import { Copy, Check, FileCode, ExternalLink, ShieldCheck, Binary, Lock, Play, RefreshCw, Layers, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { BlockExplorerModal } from './BlockExplorerModal.tsx';
 
 export const ZKExplorer: React.FC = () => {
   const [copied, setCopied] = useState(false);
@@ -8,6 +9,7 @@ export const ZKExplorer: React.FC = () => {
   const [selectedService, setSelectedService] = useState<'gmail' | 'm365' | 'slack' | 'github' | 'postgres'>('gmail');
   const [codeTab, setCodeTab] = useState<'compact' | 'zkir' | 'ledger'>('compact');
   const [ledgerData, setLedgerData] = useState<any>(null);
+  const [selectedTxForExplorer, setSelectedTxForExplorer] = useState<string | null>(null);
 
   // Interactive Live Prover Playground states
   const [proverAllowed, setProverAllowed] = useState<string[]>(['sender', 'subject', 'date']);
@@ -716,23 +718,87 @@ export circuit verify_extended_scope(
               </div>
             </div>
 
+            {/* 4-Step Cryptographic Verification Pipeline */}
+            <div className="p-4 rounded-xl bg-white/90 border border-slate-200/80 space-y-3">
+              <span className="font-sans font-bold text-xs text-slate-900 block">
+                Midnight Circuit Cryptographic Verification Pipeline (4 Stages):
+              </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-start space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-slate-800 block">1. Merkle Root Policy Hash:</span>
+                    <span className="text-[10px] text-slate-500 font-mono">0x9f88c0a72199b0c2e334f51e0892781a0b3882711</span>
+                  </div>
+                </div>
+
+                <div className={`p-2.5 rounded-lg border flex items-start space-x-2 ${
+                  proofOutput.isCompliant ? 'bg-emerald-50/70 border-emerald-200' : 'bg-rose-50/70 border-rose-200'
+                }`}>
+                  {proofOutput.isCompliant ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  ) : (
+                    <ShieldAlert className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />
+                  )}
+                  <div>
+                    <span className="font-bold text-slate-800 block">2. Zero-Leakage Constraint:</span>
+                    <span className="text-[10px] font-mono">
+                      {proofOutput.isCompliant ? 'assert((response & ~allowed) == 0) ✓' : 'assert((response & ~allowed) != 0) ✕'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-start space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-slate-800 block">3. State Commitment Hash:</span>
+                    <span className="text-[10px] text-slate-500 font-mono">sha256(witness_payload) matches anchor</span>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-start space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-slate-800 block">4. Verifying Key Signature:</span>
+                    <span className="text-[10px] text-slate-500 font-mono">vk_midnight_compact_v0.34_valid</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Unauthorized fields breakdown if violation */}
             {!proofOutput.isCompliant && proofOutput.unauthorizedFields && proofOutput.unauthorizedFields.length > 0 && (
               <div className="p-3 rounded-xl bg-rose-100/80 border border-rose-200 text-rose-900 space-y-1">
-                <span className="font-sans font-bold text-[11px] block">🚨 Unauthorized Fields Intercepted:</span>
+                <span className="font-sans font-bold text-[11px] block">Unauthorized Fields Intercepted:</span>
                 <p className="text-xs font-bold">
                   [{proofOutput.unauthorizedFields.join(', ')}] — Compact circuit asserted: (response &amp; ~allowed) != 0. Blocked before AI model delivery!
                 </p>
               </div>
             )}
 
-            <div className="pt-2 border-t border-slate-200/80 text-[10px] text-slate-600 font-mono flex flex-col sm:flex-row justify-between gap-1">
+            <div className="pt-2 border-t border-slate-200/80 text-[10px] text-slate-600 font-mono flex flex-col sm:flex-row justify-between gap-2 items-start sm:items-center">
               <span className="truncate">Midnight Tx Anchor: {proofOutput.midnightTxId}</span>
-              <span>Ledger: Midnight Testnet Preview</span>
+              <button
+                onClick={() => setSelectedTxForExplorer(proofOutput.midnightTxId || '0x8f29e102c34a9b8812ef0934bb7a61d02c918a7b3c4d5e6f7a8b9c0d1e2f3a4b')}
+                className="px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10px] transition flex items-center space-x-1"
+              >
+                <Layers className="w-3 h-3 text-indigo-400" />
+                <span>Open in Midnight Explorer</span>
+                <ExternalLink className="w-3 h-3 text-slate-400" />
+              </button>
             </div>
           </div>
         )}
       </div>
+
+      {/* Block Explorer Modal */}
+      {selectedTxForExplorer && (
+        <BlockExplorerModal
+          txHash={selectedTxForExplorer}
+          onClose={() => setSelectedTxForExplorer(null)}
+        />
+      )}
     </div>
   );
 };

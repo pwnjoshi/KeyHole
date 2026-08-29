@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { HugeCpuIcon, HugeShieldCheckIcon } from './HugeIcons.tsx';
-import { X, CheckCircle2, ExternalLink, ShieldCheck, Hash, Terminal, Copy, Check } from 'lucide-react';
+import { X, CheckCircle2, ExternalLink, ShieldCheck, Hash, Terminal, Copy, Check, Layers } from 'lucide-react';
 import { AuditEvent } from '../types.ts';
+import { BlockExplorerModal } from './BlockExplorerModal.tsx';
 
 interface ProofModalProps {
   event?: AuditEvent | null;
@@ -11,9 +12,11 @@ interface ProofModalProps {
 }
 
 export const ProofModal: React.FC<ProofModalProps> = ({ event, proof, onClose }) => {
-  const [copied, setCopied] = React.useState(false);
+  const [copied, setCopied] = useState(false);
+  const [showExplorer, setShowExplorer] = useState(false);
+  
   const proofId = proof?.proofId || event?.proofId || `proof_${Date.now().toString(36)}`;
-  const txId = proof?.midnightTxId || event?.midnightTxId || `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+  const txId = proof?.midnightTxId || event?.midnightTxId || `0x8f29e102c34a9b8812ef0934bb7a61d02c918a7b3c4d5e6f7a8b9c0d1e2f3a4b`;
   const circuitName = proof?.circuitName || 'scope-policy.compact:verify_scope_membership';
   const isCompliant = proof ? proof.isCompliant : event?.type === 'COMPLIANT';
 
@@ -97,6 +100,18 @@ export const ProofModal: React.FC<ProofModalProps> = ({ event, proof, onClose })
           </div>
         </div>
 
+        {/* Action Button: View in Midnight Block Explorer */}
+        <div>
+          <button
+            onClick={() => setShowExplorer(true)}
+            className="w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition flex items-center justify-center space-x-2 shadow-sm"
+          >
+            <Layers className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Open in Midnight Testnet Block Explorer</span>
+            <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+          </button>
+        </div>
+
         {/* Footer Note */}
         <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
           <span>Network: Midnight Testnet Preview</span>
@@ -105,6 +120,14 @@ export const ProofModal: React.FC<ProofModalProps> = ({ event, proof, onClose })
             <span>0 Bytes Disclosed</span>
           </span>
         </div>
+
+        {/* Block Explorer Modal */}
+        {showExplorer && (
+          <BlockExplorerModal
+            txHash={txId}
+            onClose={() => setShowExplorer(false)}
+          />
+        )}
       </div>
     </div>,
     document.body

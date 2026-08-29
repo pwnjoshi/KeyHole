@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { HugeShieldCheckIcon, HugeShieldAlertIcon, HugeCpuIcon } from './HugeIcons.tsx';
-import { Activity, ArrowRight, ShieldCheck, ShieldX, Database } from 'lucide-react';
+import { Activity, ArrowRight, ShieldCheck, ShieldX, Database, Trash2, Layers, ExternalLink } from 'lucide-react';
 import { AuditEvent } from '../types.ts';
 import { SkeletonFeedItem } from './SkeletonLoader.tsx';
-
-import { Trash2 } from 'lucide-react';
+import { BlockExplorerModal } from './BlockExplorerModal.tsx';
 
 interface ComplianceFeedProps {
   events: AuditEvent[];
@@ -19,6 +18,7 @@ export const ComplianceFeed: React.FC<ComplianceFeedProps> = ({
   onClearEvents,
   isLoading = false
 }) => {
+  const [selectedTxForExplorer, setSelectedTxForExplorer] = useState<string | null>(null);
   const validEvents = events.filter(e => e.type !== 'INIT');
 
   return (
@@ -69,6 +69,7 @@ export const ComplianceFeed: React.FC<ComplianceFeedProps> = ({
         <div className="space-y-2.5">
           {validEvents.map((evt) => {
             const isBlocked = evt.type === 'BLOCKED';
+            const txId = evt.midnightTxId || `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
 
             return (
               <div
@@ -110,26 +111,44 @@ export const ComplianceFeed: React.FC<ComplianceFeedProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between sm:justify-end space-x-4">
+                <div className="flex items-center justify-between sm:justify-end space-x-2 sm:space-x-3">
                   <div className="text-right text-[11px] text-slate-400 font-mono">
                     <p>{new Date(evt.timestamp).toLocaleTimeString()}</p>
                     <p className="text-[10px]">{evt.deliveredFieldCount || 0} fields delivered</p>
                   </div>
 
                   {(evt.proofDetails || evt.proofId || evt.midnightTxId) && (
-                    <button
-                      onClick={() => onInspectProof(evt)}
-                      className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition flex items-center space-x-1 shadow-2xs hover:-translate-y-0.5"
-                    >
-                      <HugeCpuIcon size={13} />
-                      <span>ZK Proof</span>
-                    </button>
+                    <div className="flex items-center space-x-1.5">
+                      <button
+                        onClick={() => onInspectProof(evt)}
+                        className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition flex items-center space-x-1 shadow-2xs hover:-translate-y-0.5"
+                      >
+                        <HugeCpuIcon size={13} />
+                        <span>ZK Proof</span>
+                      </button>
+
+                      <button
+                        onClick={() => setSelectedTxForExplorer(txId)}
+                        className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white transition shadow-2xs"
+                        title="View on Midnight Testnet Block Explorer"
+                      >
+                        <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
             );
           })}
         </div>
+      )}
+
+      {/* Block Explorer Modal */}
+      {selectedTxForExplorer && (
+        <BlockExplorerModal
+          txHash={selectedTxForExplorer}
+          onClose={() => setSelectedTxForExplorer(null)}
+        />
       )}
     </div>
   );

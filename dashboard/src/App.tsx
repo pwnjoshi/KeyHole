@@ -19,6 +19,7 @@ import { InteractiveBackground } from './components/InteractiveBackground.tsx';
 import { Footer } from './components/Footer.tsx';
 import { CommandDashboard } from './components/CommandDashboard.tsx';
 import { JudgeDemoSandbox } from './components/JudgeDemoSandbox.tsx';
+import { JudgeGuidedTour } from './components/JudgeGuidedTour.tsx';
 import { ScrollToTop } from './components/ScrollToTop.tsx';
 import { ScopePolicy, AuditEvent, ConnectorInfo, AuthUser } from './types.ts';
 
@@ -436,6 +437,9 @@ function AppContent() {
           onClose={() => setIsWalletModalOpen(false)}
         />
       )}
+
+      {/* Floating Judge Guided Tour Assistant (90s) */}
+      <JudgeGuidedTour />
 
       {/* Modern Enterprise 4-Column Footer */}
       <Footer />
