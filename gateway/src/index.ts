@@ -4,8 +4,12 @@ import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import crypto from 'node:crypto';
 import { supabase } from './supabase.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 import { PolicyStore } from './policy-store.js';
 import { AuditLog } from './audit-log.js';
