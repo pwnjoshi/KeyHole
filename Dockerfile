@@ -19,12 +19,12 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=4000
 
-# Copy build artifacts and dependencies from builder
+# Copy all node_modules and built workspace code
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/gateway/dist ./gateway/dist
-COPY --from=builder /app/gateway/package*.json ./gateway/
+COPY --from=builder /app/gateway ./gateway
 COPY --from=builder /app/dashboard/dist ./dashboard/dist
+COPY --from=builder /app/contracts ./contracts
 
 EXPOSE 4000
 

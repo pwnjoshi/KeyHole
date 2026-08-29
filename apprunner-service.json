@@ -1,0 +1,35 @@
+{
+  "ServiceName": "keyhole-gateway",
+  "SourceConfiguration": {
+    "ImageRepository": {
+      "ImageIdentifier": "013131247228.dkr.ecr.us-east-1.amazonaws.com/keyhole-gateway:latest",
+      "ImageConfiguration": {
+        "Port": "4000",
+        "RuntimeEnvironmentVariables": {
+          "PORT": "4000",
+          "NODE_ENV": "production",
+          "NEXT_PUBLIC_SUPABASE_URL": "https://mkwhrortcfhjjeghmtww.supabase.co",
+          "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_EvBHmkoczlaHCqcuXgCfkw_qtTviovL",
+          "JWT_SECRET": "keyhole-midnight-zk-secret-key-2026"
+        }
+      },
+      "ImageRepositoryType": "ECR"
+    },
+    "AutoDeploymentsEnabled": true,
+    "AuthenticationConfiguration": {
+      "AccessRoleArn": "arn:aws:iam::013131247228:role/KeyholeAppRunnerECRAccessRole"
+    }
+  },
+  "InstanceConfiguration": {
+    "Cpu": "1024",
+    "Memory": "2048"
+  },
+  "HealthCheckConfiguration": {
+    "Protocol": "HTTP",
+    "Path": "/api/health",
+    "Interval": 10,
+    "Timeout": 5,
+    "HealthyThreshold": 1,
+    "UnhealthyThreshold": 5
+  }
+}

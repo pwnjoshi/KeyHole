@@ -783,8 +783,9 @@ if (resolvedDist) {
 }
 
 if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
-    console.log(`[Keyhole Gateway] Running on port ${PORT} (http://localhost:${PORT})`);
+  const portNum = Number(PORT) || 4000;
+  app.listen(portNum, '0.0.0.0', () => {
+    console.log(`[Keyhole Gateway] Running on port ${portNum} (http://0.0.0.0:${portNum})`);
   });
 }
 
