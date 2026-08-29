@@ -4,17 +4,18 @@ import {
   dummyContractAddress
 } from '@midnight-ntwrk/compact-runtime';
 import { sha256 } from '@noble/hashes/sha256';
-import { Contract, ledger } from '../build/contract/index.js';
+import { Contract } from '../build/contract/index.js';
 
 export interface ScopeProofOutput {
   proofId: string;
-  contractAddress: string;
+  contractAddress: string;   // dummyContractAddress() from compact-runtime — local simulation
   circuitName: string;
   policyCommitment: string;
   responseCommitment: string;
   rawUpstreamHash: string;
   allowedFieldMask: string;
   responseFieldMask: string;
+  violationBits: string;
   isCompliant: boolean;
   timestamp: string;
   midnightTxId?: string;
@@ -66,17 +67,17 @@ export function computeFieldMask(fields: string[]): bigint {
 }
 
 /**
- * Correct bitmask subset check: (response & ~allowed) == 0n
- * This is what the circuit also enforces — computed here independently to
- * determine expected compliance before calling the circuit.
+ * Correct bitmask subset: (response & ~allowed) == 0
+ * This mirrors the assertion in scope-policy.compact (updated source).
+ * NOTE: the compiled index.js still uses the old is_subset_valid witness approach —
+ * we pass the correctly computed value so the circuit receives truth, not a fabrication.
  */
 export function isSubset(responseMask: bigint, allowedMask: bigint): boolean {
   return (responseMask & ~allowedMask) === 0n;
 }
 
 export function stringToBytes32(str: string): Uint8Array {
-  const hash = sha256(new TextEncoder().encode(str));
-  return new Uint8Array(hash);
+  return new Uint8Array(sha256(new TextEncoder().encode(str)));
 }
 
 let contractInstance: Contract | null = null;
@@ -107,24 +108,33 @@ export async function verifyAndProveScope(
 
   const allowedMask = computeFieldMask(allowedFields);
   const responseMask = computeFieldMask(responseFields);
-  const isValid = isSubset(responseMask, allowedMask);
+
+  // Correct bitmask subset check — (response & ~allowed) == 0
+  // NOTE: the compiled circuit (build/contract/index.js) was compiled from the original
+  // scope-policy.compact which has is_subset_valid as a witness. We pass the truthfully
+  // computed value here — we do not fabricate it. The updated .compact source (in repo)
+  // now derives this in-circuit; it will take effect when recompiled.
+  const violationBits = responseMask & ~allowedMask;
+  const isValid = violationBits === 0n;
 
   const policyBytes = stringToBytes32(policyId);
   const policyCommitmentBytes = stringToBytes32(`policy:${policyId}:${allowedMask.toString()}`);
 
-  // Response commitment is now anchored to the raw upstream hash, not just the mask.
-  // This cryptographically binds the proof to the actual upstream API response.
+  // Upstream hash: SHA-256 of the raw unredacted upstream response
   const serializedRaw = rawUpstreamPayload
     ? (typeof rawUpstreamPayload === 'string' ? rawUpstreamPayload : JSON.stringify(rawUpstreamPayload))
     : `${requestId}:${responseMask.toString()}`;
   const rawUpstreamHashBytes = sha256(new TextEncoder().encode(serializedRaw));
   const rawUpstreamHashHex = '0x' + Buffer.from(rawUpstreamHashBytes).toString('hex');
 
+  // Response commitment anchored to upstream hash
   const responseCommitmentBytes = stringToBytes32(`req:${requestId}:${rawUpstreamHashHex}:${responseMask.toString()}`);
 
   const policyCommitmentHex = Buffer.from(policyCommitmentBytes).toString('hex');
   const responseCommitmentHex = Buffer.from(responseCommitmentBytes).toString('hex');
-  const midnightTxId = '0x' + Buffer.from(sha256(new TextEncoder().encode(`midnight:${requestId}:${Date.now()}`))).toString('hex');
+  const midnightTxId = '0x' + Buffer.from(
+    sha256(new TextEncoder().encode(`midnight:${requestId}:${Date.now()}`))
+  ).toString('hex');
 
   const circuitContext = createCircuitContext(
     'verify_scope_membership',
@@ -135,9 +145,10 @@ export async function verifyAndProveScope(
   );
 
   try {
-    // Circuit call matches updated signature (no is_subset_valid trusted boolean):
-    // verify_scope_membership(policy_id, policy_commitment, response_commitment,
-    //                          allowed_field_mask, response_field_mask, raw_upstream_payload_hash)
+    // Call the compiled circuit with its actual signature (from build/contract/index.d.ts):
+    //   verify_scope_membership(context, policy_id, policy_commitment, response_commitment,
+    //                            allowed_field_mask, response_field_mask, is_subset_valid)
+    // is_subset_valid is passed as the truthfully computed bitmask result — not fabricated.
     await contract.circuits.verify_scope_membership(
       circuitContext,
       policyBytes,
@@ -145,10 +156,10 @@ export async function verifyAndProveScope(
       responseCommitmentBytes,
       allowedMask,
       responseMask,
-      rawUpstreamHashBytes   // private witness: SHA-256 of raw upstream response
+      isValid          // truthfully computed: (responseMask & ~allowedMask) === 0n
     );
-  } catch (err: any) {
-    // Circuit rejected — means isCompliant === false (bitmask violation caught in circuit)
+  } catch {
+    // Circuit threw — either isValid=false (policy violation) or circuit internal error.
     return {
       proofId: `proof_${requestId}`,
       contractAddress: address,
@@ -158,6 +169,7 @@ export async function verifyAndProveScope(
       rawUpstreamHash: rawUpstreamHashHex,
       allowedFieldMask: '0x' + allowedMask.toString(16),
       responseFieldMask: '0x' + responseMask.toString(16),
+      violationBits: '0x' + violationBits.toString(16),
       isCompliant: false,
       timestamp: new Date().toISOString()
     };
@@ -172,6 +184,7 @@ export async function verifyAndProveScope(
     rawUpstreamHash: rawUpstreamHashHex,
     allowedFieldMask: '0x' + allowedMask.toString(16),
     responseFieldMask: '0x' + responseMask.toString(16),
+    violationBits: '0x' + violationBits.toString(16),
     isCompliant: isValid,
     timestamp: new Date().toISOString(),
     midnightTxId

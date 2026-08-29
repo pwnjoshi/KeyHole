@@ -768,21 +768,48 @@ export const IntegrationsHub: React.FC = () => {
               {selectedServiceForModal.id === 'google_workspace' ? (
                 <div className="space-y-4 pt-1">
                   {/* Instant Demo Option */}
-                  <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl">
-                    <div className="flex items-center space-x-2 mb-1.5">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                      <span className="font-bold text-xs text-emerald-900">Hackathon Sandbox Demo Workspace</span>
+                  <div className="relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-emerald-50/90 via-teal-50/40 to-slate-50 border border-emerald-200/90 shadow-xs space-y-3">
+                    {/* Header badge */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-700">
+                          <Sparkles className="w-3 h-3" />
+                        </div>
+                        <span className="font-bold text-xs text-emerald-950">Hackathon Sandbox Demo Workspace</span>
+                      </div>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100/90 text-emerald-800 border border-emerald-200">
+                        <ShieldCheck className="w-3 h-3 mr-1 text-emerald-600" />
+                        Simulated Dataset
+                      </span>
                     </div>
-                    <p className="text-[11px] text-emerald-700 leading-relaxed mb-3">
-                      Loads pre-configured simulated enterprise invoices (AWS, DigitalOcean, GitHub) under tenant <code className="font-mono bg-emerald-100 px-1 py-0.5 rounded text-emerald-900">joshipawan2021@gmail.com</code> for safe zero-knowledge policy testing. (Does not access your personal Gmail inbox).
+
+                    {/* Explanatory text */}
+                    <p className="text-[11px] text-slate-600 leading-relaxed">
+                      Loads pre-configured simulated enterprise invoices (AWS Cloud, DigitalOcean, GitHub) under tenant{' '}
+                      <span className="inline-block font-mono bg-white px-1.5 py-0.5 rounded-md text-emerald-900 font-medium border border-emerald-200 shadow-2xs">
+                        joshipawan2021@gmail.com
+                      </span>{' '}
+                      for safe zero-knowledge policy testing.
                     </p>
+
+                    {/* Isolation Guarantee */}
+                    <div className="flex items-center space-x-1.5 text-[10px] text-emerald-800 bg-emerald-100/60 border border-emerald-200/60 rounded-lg px-2.5 py-1">
+                      <Lock className="w-3 h-3 text-emerald-700 flex-shrink-0" />
+                      <span>Fully isolated testnet sandbox &bull; Zero access to personal Gmail inbox</span>
+                    </div>
+
+                    {/* Connect Button */}
                     <button
                       type="button"
                       onClick={() => handleConnectDemoGoogle('joshipawan2021@gmail.com')}
-                      className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition flex items-center justify-center space-x-2 shadow-sm"
+                      className="group relative w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:via-teal-500 hover:to-emerald-600 text-white font-medium text-xs transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2 active:scale-[0.99]"
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Connect Sandbox Demo Workspace (joshipawan2021@gmail.com)</span>
+                      <Sparkles className="w-4 h-4 flex-shrink-0 text-emerald-200 group-hover:rotate-12 transition-transform duration-300" />
+                      <span className="font-semibold text-xs tracking-tight">Connect Sandbox Demo Workspace</span>
+                      <span className="opacity-80 font-mono text-[10px] bg-emerald-800/40 px-1.5 py-0.5 rounded border border-emerald-400/30 hidden sm:inline">
+                        joshipawan2021@gmail.com
+                      </span>
+                      <ArrowRight className="w-3.5 h-3.5 opacity-70 group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
                     </button>
                   </div>
 

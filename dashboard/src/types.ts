@@ -21,7 +21,7 @@ export type AuditEventType = 'COMPLIANT' | 'BLOCKED' | 'INIT';
 
 export interface ProofDetails {
   midnightTxId: string;
-  contractAddress: string;
+  contractAddress?: string | null;
   circuitId: string;
   policyCommitment: string;
   responseCommitment: string;

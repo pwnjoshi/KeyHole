@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 
 export interface ProofResult {
   proofId: string;
-  contractAddress: string;
+  contractAddress: string | null;
   circuitName: string;
   policyCommitment: string;
   responseCommitment: string;
@@ -138,10 +138,8 @@ export class MidnightProofClient {
     return {
       // proofId is deterministic per request — no Math.random()
       proofId: `proof_${requestId}`,
-      // Contract address is the deterministic compact-runtime output for this circuit.
-      // NOTE: This is a local simulation — Keyhole targets Midnight Testnet which does
-      // not yet have a public deployment API. See contracts/BUILD_LOG.md.
-      contractAddress: '0x9f88c0a72199b0c2e334f51e0892781a0b3882711',
+      // Contract address is null pending on-chain deployment; target circuit is verify_scope_membership
+      contractAddress: null,
       circuitName: 'verify_scope_membership',
       policyCommitment,
       responseCommitment,
