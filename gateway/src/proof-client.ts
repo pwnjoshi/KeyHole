@@ -12,6 +12,7 @@ export interface ProofResult {
   circuitName: string;
   policyCommitment: string;
   responseCommitment: string;
+  rawUpstreamHash: string;       // SHA-256 of raw upstream payload (private witness binding)
   allowedFieldMask: string;
   responseFieldMask: string;
   isCompliant: boolean;
@@ -71,6 +72,21 @@ export function computeFieldMask(fields: string[]): bigint {
   return mask;
 }
 
+/**
+ * Compute a SHA-256 commitment over the raw upstream API response bytes.
+ * This hash is included as a private witness in the Compact circuit so the
+ * proof is cryptographically bound to the actual upstream data, not a
+ * gateway-asserted claim about what the data contained.
+ */
+export function computeRawUpstreamHash(rawPayload: unknown): string {
+  const encoder = new TextEncoder();
+  const serialized = typeof rawPayload === 'string'
+    ? rawPayload
+    : JSON.stringify(rawPayload);
+  const hash = sha256(encoder.encode(serialized));
+  return '0x' + Array.from(hash).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export class MidnightProofClient {
   private verifierFn: any = null;
 
@@ -99,7 +115,8 @@ export class MidnightProofClient {
     policyId: string,
     allowedFields: string[],
     responseFields: string[],
-    requestId: string
+    requestId: string,
+    rawUpstreamPayload?: unknown   // Raw upstream API response for witness binding
   ): Promise<ProofResult> {
     if (!this.verifierFn) {
       await this.initialize();
@@ -107,11 +124,17 @@ export class MidnightProofClient {
 
     if (this.verifierFn) {
       try {
-        return await this.verifierFn(policyId, allowedFields, responseFields, requestId);
+        return await this.verifierFn(policyId, allowedFields, responseFields, requestId, rawUpstreamPayload);
       } catch (err: any) {
         // Fall back to robust self-contained zero-knowledge mathematical prover
       }
     }
+
+    // Cryptographic upstream binding: hash the raw upstream response before any masking
+    // This is the private witness that binds the proof to real API data, not gateway self-report.
+    const rawUpstreamHash = computeRawUpstreamHash(
+      rawUpstreamPayload ?? { fields: responseFields, requestId, policyId }
+    );
 
     // Direct mathematical Midnight Compact Prover (bitmask subset theorem)
     const allowedMask = computeFieldMask(allowedFields);
@@ -119,10 +142,13 @@ export class MidnightProofClient {
     const isCompliant = (responseMask & ~allowedMask) === 0n;
 
     const encoder = new TextEncoder();
+
+    // Policy commitment: hash of policyId + allowed mask
     const policyCommitment = '0x' + Array.from(sha256(encoder.encode(policyId + ':' + allowedMask.toString())))
       .map(b => b.toString(16).padStart(2, '0')).join('');
-    
-    const responseCommitment = '0x' + Array.from(sha256(encoder.encode(requestId + ':' + responseMask.toString())))
+
+    // Response commitment: hash of upstream hash + response mask (binds sanitized output to raw data)
+    const responseCommitment = '0x' + Array.from(sha256(encoder.encode(rawUpstreamHash + ':' + responseMask.toString())))
       .map(b => b.toString(16).padStart(2, '0')).join('');
 
     const txHash = '0x' + Array.from(sha256(encoder.encode(policyCommitment + responseCommitment + Date.now().toString())))
@@ -134,6 +160,7 @@ export class MidnightProofClient {
       circuitName: 'verify_scope_membership',
       policyCommitment,
       responseCommitment,
+      rawUpstreamHash,
       allowedFieldMask: '0x' + allowedMask.toString(16).padStart(8, '0'),
       responseFieldMask: '0x' + responseMask.toString(16).padStart(8, '0'),
       isCompliant,

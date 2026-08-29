@@ -191,11 +191,14 @@ export class PolicyEngine {
     const responseFields = Array.from(responseFieldSet);
 
     // 4. GENERATE MIDNIGHT ZERO-KNOWLEDGE SCOPE PROOF:
+    // rawRecords is passed as the upstream binding witness so the proof is anchored to
+    // the actual API response hash, not a gateway self-assertion about the data content.
     const proof = await this.proofClient.generateScopeProof(
       policy.id,
       policy.allowedFields,
       responseFields,
-      requestId
+      requestId,
+      rawRecords   // raw upstream payload — hashed as private witness inside generateScopeProof
     );
 
     // 5. APPEND-ONLY AUDIT LOG (zero confidential data logged):

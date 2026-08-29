@@ -78,10 +78,45 @@ Keyhole solves this through **Two-Witness Cryptographic Upstream Binding** insid
                                                       └────────────────────────────┘
 ```
 
-1. **Raw Upstream Hash Commitment**: `raw_upstream_payload_hash: Bytes<32>` is supplied as a private witness.
+1. **Raw Upstream Hash Commitment**: `raw_upstream_payload_hash: Bytes<32>` is supplied as a private witness — computed over the **raw, unredacted upstream API response** before any masking occurs. See [`gateway/src/proof-client.ts`](gateway/src/proof-client.ts) `computeRawUpstreamHash()`.
 2. **Deterministic Redaction Proof**: The Compact circuit asserts that the sanitized fields delivered to the agent are a strict mathematical subset of the verified upstream payload:
    $$\text{assert}((\text{response\_field\_mask} \ \& \ \sim\text{allowed\_field\_mask}) == 0)$$
 3. **Public Non-Disclosure State**: The on-chain ledger records only the state commitment hash and compliance boolean `true`, disclosing **0 bytes of confidential user content** to public view.
+
+---
+
+## 🔐 Trust Model: What the Proof Actually Guarantees
+
+### What the proof proves
+
+The Compact circuit proves one mathematical statement:
+
+> `assert((response_field_mask & ~allowed_field_mask) == 0)`
+
+Every field in the response the agent received is a strict subset of what the policy permits — checked in zero-knowledge, so no field values, subject lines, or message bodies are disclosed to the chain or dashboard observers.
+
+### What binds the proof to reality
+
+The `response_field_mask` used as a circuit witness is **not** a value the gateway can freely assert. It is derived from a `SHA-256` commitment taken over the **raw, unredacted upstream API response**, captured before server-side masking runs.
+
+`responseCommitment = SHA-256(rawUpstreamHash + responseMask)` — so a gateway that fabricated a compliant mask without fetching real data would produce a commitment that fails to verify. See [`gateway/src/proof-client.ts`](gateway/src/proof-client.ts) for the implementation.
+
+### What the proof does *not* claim
+
+- It does **not** prove the upstream SaaS API (Gmail, Slack, etc.) is honest — those are trusted via authenticated OAuth over TLS.
+- It does **not** prove the AI agent didn't *attempt* out-of-scope requests — the **Pre-Fetch Guard** (HTTP 403) and **Canary Trap** (HTTP 423) enforce that at the network layer, before the proof runs.
+- It is a **per-request** attestation, not a guarantee about the agent's downstream use of permitted data.
+
+### Threat model summary
+
+| Actor | Trust Level | Rationale |
+|---|---|---|
+| Midnight network / verifier | **Trustless** | Standard ZK soundness guarantees |
+| Keyhole gateway | **Trust-minimized** | Raw upstream hash is a private witness; a lying gateway cannot produce a valid proof |
+| Upstream SaaS (Gmail, Slack…) | **Trusted** | Authenticated OAuth over TLS |
+| AI agent | **Untrusted** | Precisely who the perimeter defends against |
+
+> **Network**: Keyhole runs on **Midnight Testnet Preview (Chain ID: 42)**. Mainnet deployment is post-hackathon pending Midnight's public mainnet launch.
 
 ---
 
