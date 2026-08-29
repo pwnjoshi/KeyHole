@@ -1,7 +1,10 @@
-import { pathToFileURL } from 'url';
+import { pathToFileURL, fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
 import { sha256 } from '@noble/hashes/sha256';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export interface ProofResult {
   proofId: string;
