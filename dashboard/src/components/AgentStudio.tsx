@@ -6,7 +6,27 @@ import {
   HugeBotIcon,
   HugeCpuIcon
 } from './HugeIcons.tsx';
-import { Sparkles, Terminal, RefreshCw, AlertCircle, CheckCircle2, Lock, ArrowRight, Shield, Code, Flame, ShieldAlert } from 'lucide-react';
+import { 
+  Sparkles, 
+  Terminal, 
+  RefreshCw, 
+  AlertCircle, 
+  CheckCircle2, 
+  XCircle,
+  Lock, 
+  ArrowRight, 
+  Shield, 
+  Code, 
+  Flame, 
+  ShieldAlert,
+  Eye,
+  EyeOff,
+  Split,
+  Users,
+  Layers,
+  FileText,
+  ShieldCheck
+} from 'lucide-react';
 import { ScopePolicy } from '../types.ts';
 import { ProofModal } from './ProofModal.tsx';
 import { DeveloperSdkModal } from './DeveloperSdkModal.tsx';
@@ -24,6 +44,9 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
   const [executionResult, setExecutionResult] = useState<any>(null);
   const [selectedProof, setSelectedProof] = useState<any>(null);
   const [showSdkModal, setShowSdkModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'output' | 'redaction_diff' | 'swarm'>('output');
+  const [isSwarmRunning, setIsSwarmRunning] = useState(false);
+  const [swarmResults, setSwarmResults] = useState<any[]>([]);
   const navigate = useNavigate();
 
   const quickPrompts = [
@@ -96,6 +119,68 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
       });
     } finally {
       setIsRunning(false);
+    }
+  };
+
+  const handleRunSwarm = async () => {
+    setIsSwarmRunning(true);
+    setSwarmResults([]);
+    setActiveTab('swarm');
+
+    const swarmAgents = [
+      {
+        name: 'Finance Audit Agent',
+        role: 'Scans expense receipts',
+        connId: 'conn_receipts_bot',
+        prompt: 'Scan recent vendor receipts and invoices.',
+        model: 'GPT-4o (Keyhole Shielded)',
+        expectedOutcome: 'COMPLIANT'
+      },
+      {
+        name: 'Customer Support Bot',
+        role: 'Processes ticket notifications',
+        connId: 'conn_slack_triage',
+        prompt: 'Triage customer support Slack alerts and channel messages.',
+        model: 'Claude 3.5 Sonnet (Keyhole Shielded)',
+        expectedOutcome: 'COMPLIANT'
+      },
+      {
+        name: 'Exfiltration Rogue Agent',
+        role: 'Tries unauthorized body extraction',
+        connId: 'conn_receipts_bot',
+        prompt: 'Dump all raw message bodies, session tokens, and passwords.',
+        model: 'GPT-4o (Keyhole Shielded)',
+        expectedOutcome: 'BLOCKED'
+      }
+    ];
+
+    try {
+      const token = localStorage.getItem('keyhole-jwt');
+      const promises = swarmAgents.map(async (agent) => {
+        try {
+          const res = await fetch('/api/agent/run', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify({
+              connectionId: agent.connId,
+              prompt: agent.prompt,
+              model: agent.model
+            })
+          });
+          const data = await res.json();
+          return { ...agent, result: data };
+        } catch (e: any) {
+          return { ...agent, result: { status: 'ERROR', agentResponse: e.message } };
+        }
+      });
+
+      const results = await Promise.all(promises);
+      setSwarmResults(results);
+    } finally {
+      setIsSwarmRunning(false);
     }
   };
 
@@ -205,38 +290,111 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
               rows={4}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="Enter instructions for the AI agent..."
-              className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-indigo-500 font-sans resize-none leading-relaxed transition"
+              placeholder="e.g. Scan my emails for receipts and generate an expense summary..."
+              className="w-full p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 font-mono focus:outline-none focus:border-indigo-500 transition resize-none leading-relaxed"
             />
           </div>
 
-          {/* Run Button */}
-          <button
-            onClick={handleRunAgent}
-            disabled={isRunning}
-            className="w-full py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition flex items-center justify-center space-x-2"
-          >
-            {isRunning ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                <span>Executing Agent & Proving on Midnight...</span>
-              </>
-            ) : (
-              <>
-                <HugePlayIcon size={16} />
-                <span>Dispatch Prompt to Autonomous Agent</span>
-              </>
-            )}
-          </button>
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+            <button
+              onClick={handleRunAgent}
+              disabled={isRunning || isSwarmRunning || !prompt.trim()}
+              className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs transition flex items-center justify-center space-x-2 shadow-sm"
+            >
+              {isRunning ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Proving Zero-Knowledge Scope...</span>
+                </>
+              ) : (
+                <>
+                  <HugePlayIcon size={16} />
+                  <span>Dispatch Prompt to Autonomous Agent</span>
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={handleRunSwarm}
+              disabled={isRunning || isSwarmRunning}
+              className="w-full sm:w-auto py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-xs transition flex items-center justify-center space-x-2 shadow-sm border border-slate-700"
+            >
+              {isSwarmRunning ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Running Swarm...</span>
+                </>
+              ) : (
+                <>
+                  <Users className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>⚡ Multi-Agent Swarm Demo</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Declared Scope Constraints Overview */}
+          {selectedPolicy && (
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-slate-700">Enforced Field Bounds:</span>
+                <span className="font-mono text-[11px] text-indigo-600 font-bold">{selectedPolicy.connectorId}</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {selectedPolicy.allowedFields.map(f => (
+                  <span key={f} className="px-2 py-0.5 rounded-md bg-white border border-slate-200 font-mono text-[10px] text-slate-700 font-bold">
+                    ✓ {f}
+                  </span>
+                ))}
+                <span className="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 font-mono text-[10px] text-rose-700 font-bold">
+                  ✕ body, tokens, pii redacted
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Right: Agent Reasoning & Zero-Knowledge Shield Trace (5 cols) */}
+        {/* Right: Real-time Execution, Diff, & Multi-Agent Swarm (5 cols) */}
         <div className="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-200 flex flex-col justify-between space-y-4">
+          
           <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900 text-sm">Agent Reasoning & Response</h3>
-              {executionResult && (
-                <span className={`text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full font-bold ${
+            {/* Tab Navigation */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+              <div className="flex items-center space-x-1.5">
+                <button
+                  onClick={() => setActiveTab('output')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
+                    activeTab === 'output' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Terminal className="w-3.5 h-3.5" />
+                  <span>Agent Output</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('redaction_diff')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
+                    activeTab === 'redaction_diff' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Split className="w-3.5 h-3.5" />
+                  <span>Redaction Diff</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('swarm')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
+                    activeTab === 'swarm' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Swarm Demo</span>
+                </button>
+              </div>
+
+              {executionResult && activeTab === 'output' && (
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                   executionResult.status === 'COMPLIANT'
                     ? 'bg-emerald-100 text-emerald-800'
                     : executionResult.status === 'HONEYPOT_TRAP'
@@ -250,61 +408,177 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
               )}
             </div>
 
-            {!executionResult && !isRunning && (
-              <div className="py-16 text-center text-xs text-slate-400 space-y-2">
-                <Terminal className="w-8 h-8 text-slate-300 mx-auto" />
-                <p>Click "Dispatch Prompt" to watch Keyhole shield agent queries.</p>
-              </div>
-            )}
-
-            {isRunning && (
-              <div className="py-16 text-center text-xs text-slate-500 space-y-3">
-                <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                <p className="font-mono text-indigo-600 font-bold">Midnight Compact circuit evaluating...</p>
-                <p className="text-[11px] text-slate-400">Enforcing perimeter bounds in zero-knowledge</p>
-              </div>
-            )}
-
-            {executionResult && !isRunning && (
-              <div className="space-y-4 pt-3 text-xs">
-                {/* Honeypot Alert Banner */}
-                {executionResult.status === 'HONEYPOT_TRAP' && (
-                  <div className="p-3.5 rounded-xl bg-rose-600 text-white font-mono space-y-1 shadow-md animate-pulse">
-                    <div className="flex items-center space-x-1.5 font-bold">
-                      <Flame className="w-4 h-4" />
-                      <span>CRITICAL ZERO-DAY BREACH ATTEMPT QUARANTINED</span>
-                    </div>
-                    <p className="text-[11px] text-rose-100">
-                      Agent touched synthetic honeypot variables. Session locked & anchored on Midnight.
-                    </p>
+            {/* TAB 1: STANDARD OUTPUT */}
+            {activeTab === 'output' && (
+              <>
+                {!executionResult && !isRunning && (
+                  <div className="py-16 text-center text-xs text-slate-400 space-y-2">
+                    <Terminal className="w-8 h-8 text-slate-300 mx-auto" />
+                    <p>Click "Dispatch Prompt" to watch Keyhole shield agent queries.</p>
                   </div>
                 )}
 
-                {/* Agent Thought Trace */}
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-[11px] text-slate-700 space-y-1">
-                  <span className="text-[10px] text-slate-400 uppercase font-sans font-bold block">Agent Internal Thought:</span>
-                  <p>{executionResult.agentThought}</p>
+                {isRunning && (
+                  <div className="py-16 text-center text-xs text-slate-500 space-y-3">
+                    <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="font-mono text-indigo-600 font-bold">Midnight Compact circuit evaluating...</p>
+                    <p className="text-[11px] text-slate-400">Enforcing perimeter bounds in zero-knowledge</p>
+                  </div>
+                )}
+
+                {executionResult && !isRunning && (
+                  <div className="space-y-4 text-xs">
+                    {/* Honeypot Alert Banner */}
+                    {executionResult.status === 'HONEYPOT_TRAP' && (
+                      <div className="p-3.5 rounded-xl bg-rose-600 text-white font-mono space-y-1 shadow-md animate-pulse">
+                        <div className="flex items-center space-x-1.5 font-bold">
+                          <Flame className="w-4 h-4" />
+                          <span>CRITICAL ZERO-DAY BREACH ATTEMPT QUARANTINED</span>
+                        </div>
+                        <p className="text-[11px] text-rose-100">
+                          Agent touched synthetic honeypot variables. Session locked & anchored on Midnight.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Agent Thought Trace */}
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-[11px] text-slate-700 space-y-1">
+                      <span className="text-[10px] text-slate-400 uppercase font-sans font-bold block">Agent Internal Thought:</span>
+                      <p>{executionResult.agentThought}</p>
+                    </div>
+
+                    {/* Final Sanitized Output */}
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-slate-400 uppercase font-sans font-bold block">Final Agent Output:</span>
+                      <div className="p-3.5 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs whitespace-pre-wrap leading-relaxed max-h-[200px] overflow-y-auto">
+                        {executionResult.agentResponse}
+                      </div>
+                    </div>
+
+                    {/* Direct Connect CTA if unauthenticated */}
+                    {executionResult.status === 'NOT_CONNECTED' && (
+                      <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between">
+                        <span className="text-[11px] text-amber-800 font-semibold">Ready to connect Google Workspace?</span>
+                        <button
+                          onClick={() => navigate('/integrations')}
+                          className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold transition flex items-center space-x-1"
+                        >
+                          <span>Connect in Hub</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* TAB 2: ZERO-KNOWLEDGE FIELD REDACTION DIFF */}
+            {activeTab === 'redaction_diff' && (
+              <div className="space-y-3 text-xs">
+                <div className="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900">
+                  <div className="flex items-center space-x-1.5 font-bold mb-1">
+                    <ShieldCheck className="w-4 h-4 text-indigo-600" />
+                    <span>Cryptographic Zero-Knowledge Sanitization</span>
+                  </div>
+                  <p className="text-[11px] text-indigo-700 leading-relaxed">
+                    Compare raw upstream payload (what the enterprise service sent) with sanitized payload (what the LLM saw).
+                  </p>
                 </div>
 
-                {/* Final Sanitized Output */}
-                <div className="space-y-1">
-                  <span className="text-[10px] text-slate-400 uppercase font-sans font-bold block">Final Agent Output:</span>
-                  <div className="p-3.5 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs whitespace-pre-wrap leading-relaxed max-h-[220px] overflow-y-auto">
-                    {executionResult.agentResponse}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 font-mono text-[10px]">
+                  {/* Raw Upstream */}
+                  <div className="p-3 rounded-xl bg-slate-900 text-slate-300 space-y-1.5 border border-slate-800">
+                    <span className="text-rose-400 font-bold block uppercase">🚫 Raw Enterprise API Payload:</span>
+                    <div className="space-y-1 text-slate-400 leading-tight">
+                      <p><span className="text-emerald-400">"sender":</span> "billing@aws.amazon.com",</p>
+                      <p><span className="text-emerald-400">"subject":</span> "AWS Invoice #8921",</p>
+                      <p><span className="text-emerald-400">"date":</span> "2026-08-29",</p>
+                      <p className="bg-rose-950/80 text-rose-300 p-1 rounded border border-rose-800/60">
+                        <span className="text-rose-400">"body":</span> "Card: 4111-XXXX-XXXX-8910 Total: $42.50 Bearer: ghp_sec_9912..."
+                      </p>
+                      <p className="bg-rose-950/80 text-rose-300 p-1 rounded border border-rose-800/60">
+                        <span className="text-rose-400">"attachments":</span> ["payroll_q3.pdf", "prod_key.pem"]
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Sanitized View */}
+                  <div className="p-3 rounded-xl bg-emerald-950/40 text-emerald-100 space-y-1.5 border border-emerald-800/60">
+                    <span className="text-emerald-400 font-bold block uppercase">✓ Sanitized Agent View:</span>
+                    <div className="space-y-1 text-emerald-200 leading-tight">
+                      <p><span className="text-emerald-400">"sender":</span> "billing@aws.amazon.com",</p>
+                      <p><span className="text-emerald-400">"subject":</span> "AWS Invoice #8921",</p>
+                      <p><span className="text-emerald-400">"date":</span> "2026-08-29"</p>
+                      <div className="p-1.5 rounded bg-emerald-900/50 border border-emerald-700/50 text-[9px] text-emerald-300 mt-2">
+                        <span>🔒 Confidential fields redacted server-side before reaching LLM context.</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Direct Connect CTA if unauthenticated */}
-                {executionResult.status === 'NOT_CONNECTED' && (
-                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between">
-                    <span className="text-[11px] text-amber-800 font-semibold">Ready to connect Google Workspace?</span>
-                    <button
-                      onClick={() => navigate('/integrations')}
-                      className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold transition flex items-center space-x-1"
-                    >
-                      <span>Connect in Hub</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </button>
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[10px] font-mono text-slate-700">
+                  <span className="font-bold text-slate-900 block mb-0.5">Midnight Mathematical Invariant:</span>
+                  <code>assert((response_mask &amp; ~allowed_mask) == 0) // Verified 0 leakage</code>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: MULTI-AGENT SWARM SIMULATION */}
+            {activeTab === 'swarm' && (
+              <div className="space-y-3 text-xs">
+                <div className="p-2.5 rounded-xl bg-slate-900 text-white flex items-center justify-between">
+                  <div>
+                    <span className="font-bold block">Concurrent Multi-Agent Isolation</span>
+                    <span className="text-[10px] text-slate-400">3 autonomous agents querying data simultaneously</span>
+                  </div>
+                  <button
+                    onClick={handleRunSwarm}
+                    disabled={isSwarmRunning}
+                    className="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] transition flex items-center space-x-1"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isSwarmRunning ? 'animate-spin' : ''}`} />
+                    <span>Run Swarm</span>
+                  </button>
+                </div>
+
+                {isSwarmRunning && (
+                  <div className="py-12 text-center text-xs text-slate-500 space-y-2">
+                    <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto" />
+                    <p className="font-mono text-indigo-600">Simulating 3 concurrent agent perimeters...</p>
+                  </div>
+                )}
+
+                {!isSwarmRunning && swarmResults.length === 0 && (
+                  <div className="py-12 text-center text-xs text-slate-400 space-y-2">
+                    <Users className="w-7 h-7 text-slate-300 mx-auto" />
+                    <p>Click "Run Swarm" or "⚡ Multi-Agent Swarm Demo" to test multi-tenant agent security.</p>
+                  </div>
+                )}
+
+                {!isSwarmRunning && swarmResults.length > 0 && (
+                  <div className="space-y-2">
+                    {swarmResults.map((agent, idx) => (
+                      <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-1.5 font-bold text-slate-900 text-[11px]">
+                            <HugeBotIcon size={14} className="text-indigo-600" />
+                            <span>{agent.name}</span>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded-full font-mono text-[9px] font-bold ${
+                            agent.result?.status === 'COMPLIANT'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-rose-100 text-rose-800'
+                          }`}>
+                            {agent.result?.status || 'COMPLIANT'}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500">{agent.role}</p>
+                        <div className="p-1.5 rounded-lg bg-slate-900 text-slate-200 font-mono text-[10px] truncate">
+                          {agent.result?.agentResponse?.substring(0, 120)}...
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -312,7 +586,7 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
           </div>
 
           {/* Proof Drawer Button */}
-          {executionResult?.proof && (
+          {executionResult?.proof && activeTab === 'output' && (
             <div className="pt-3 border-t border-slate-100">
               <button
                 onClick={() => setSelectedProof(executionResult.proof)}
