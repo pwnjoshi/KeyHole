@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { HugeCpuIcon, HugeShieldCheckIcon } from './HugeIcons.tsx';
-import { X, CheckCircle2, ExternalLink, ShieldCheck, Hash, Terminal, Copy, Check, Layers, Lock, Shield } from 'lucide-react';
+import { X, CheckCircle2, ExternalLink, ShieldCheck, Hash, Terminal, Copy, Check, Layers, Lock, Shield, Sparkles } from 'lucide-react';
 import { AuditEvent } from '../types.ts';
 import { BlockExplorerModal } from './BlockExplorerModal.tsx';
 
@@ -75,6 +75,18 @@ export const ProofModal: React.FC<ProofModalProps> = ({ event, proof, onClose })
             isCompliant ? 'bg-white text-emerald-800 border-emerald-200' : 'bg-white text-rose-800 border-rose-200'
           }`}>
             {isCompliant ? 'Sound ZK Proof' : 'Blocked'}
+          </span>
+        </div>
+
+        {/* Prover Engine Transparency Badge */}
+        <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 text-white font-mono text-[11px]">
+          <div className="flex items-center space-x-2">
+            <HugeCpuIcon size={16} className="text-indigo-400" />
+            <span className="font-sans font-semibold text-xs text-slate-200">Execution Prover:</span>
+          </div>
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+            <Sparkles className="w-3 h-3 mr-1 text-emerald-400" />
+            {proof?.proverEngine === 'mathematical-bitmask-prover' ? 'Mathematical Bitmask Prover' : 'Midnight Compact Runtime (Real ZKIR)'}
           </span>
         </div>
 

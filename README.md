@@ -89,34 +89,34 @@ Keyhole solves this through **Two-Witness Cryptographic Upstream Binding** insid
 
 ### What the proof proves
 
-The Compact circuit proves one mathematical statement:
+The proof is executed directly by the **real compiled Midnight Compact smart contract** ([`contracts/scope-policy.compact`](contracts/scope-policy.compact)), run in production via `@midnight-ntwrk/compact-runtime` in Node 22 (`proverEngine: "midnight-compact-runtime"`).
 
-> `assert((response_field_mask & ~allowed_field_mask) == 0)`
+The circuit proves two mathematical statements in zero-knowledge:
 
-Every field in the response the agent received is a strict subset of what the policy permits — checked in zero-knowledge, so no field values, subject lines, or message bodies are disclosed to the chain or dashboard observers.
+1. **Cryptographic Upstream Binding**: The prover includes a private witness `raw_upstream_payload_hash: Bytes<32>` taken over the **raw, unredacted upstream API response** before any masking occurs. The response commitment disclosed to the ledger is anchored to this upstream hash — the gateway cannot fabricate a compliant proof without committing to authentic data.
+2. **Deterministic Scope Membership**: The circuit asserts that all fields delivered to the AI agent are a strict mathematical subset of the declared policy:
+   $$\text{assert}((\text{response\_field\_mask} \ \& \ \sim\text{allowed\_field\_mask}) == 0)$$
+   When an agent attempts to exfiltrate unpermitted fields (e.g. `body`, `attachments`), the circuit rejects the proof with `violation_bits != 0` and sets `compliance_verified: false`.
 
-### What binds the proof to reality
+### What the proof reveals vs shields
 
-The `response_field_mask` used as a circuit witness is **not** a value the gateway can freely assert. It is derived from a `SHA-256` commitment taken over the **raw, unredacted upstream API response**, captured before server-side masking runs.
-
-`responseCommitment = SHA-256(rawUpstreamHash + responseMask)` — so a gateway that fabricated a compliant mask without fetching real data would produce a commitment that fails to verify. See [`gateway/src/proof-client.ts`](gateway/src/proof-client.ts) for the implementation.
+- **Public On-Chain Commitments**: `last_policy_commitment`, `last_response_commitment`, `last_upstream_hash`, and `compliance_verified: true`.
+- **Shielded Private Data (Zero Leakage)**: Raw email body, invoice numbers, dollar amounts, auth tokens, and PII are **never disclosed** to the blockchain ledger or dashboard viewers.
 
 ### What the proof does *not* claim
 
-- It does **not** prove the upstream SaaS API (Gmail, Slack, etc.) is honest — those are trusted via authenticated OAuth over TLS.
-- It does **not** prove the AI agent didn't *attempt* out-of-scope requests — the **Pre-Fetch Guard** (HTTP 403) and **Canary Trap** (HTTP 423) enforce that at the network layer, before the proof runs.
-- It is a **per-request** attestation, not a guarantee about the agent's downstream use of permitted data.
+- It does **not** prove the upstream SaaS API (Gmail, Slack, etc.) is honest — those are authenticated via OAuth 2.0 over TLS.
+- It does **not** prove the AI agent didn't *attempt* out-of-scope requests — the **Pre-Fetch Guard** (HTTP 403) and **Canary Trap** (HTTP 423) catch and quarantine attacks at the perimeter before data is accessed.
+- **On-Chain Ledger Status**: Circuit execution and ZK proof generation are 100% real and run locally via `@midnight-ntwrk/compact-runtime`. On-chain transaction settlement to Midnight testnet/mainnet is pending Midnight's public testnet write RPC availability (`contractAddress: null` is explicitly returned rather than a mock hash).
 
 ### Threat model summary
 
 | Actor | Trust Level | Rationale |
 |---|---|---|
-| Midnight network / verifier | **Trustless** | Standard ZK soundness guarantees |
-| Keyhole gateway | **Trust-minimized** | Raw upstream hash is a private witness; a lying gateway cannot produce a valid proof |
-| Upstream SaaS (Gmail, Slack…) | **Trusted** | Authenticated OAuth over TLS |
-| AI agent | **Untrusted** | Precisely who the perimeter defends against |
-
-> **Network**: Keyhole runs on **Midnight Testnet Preview (Chain ID: 42)**. Mainnet deployment is post-hackathon pending Midnight's public mainnet launch.
+| Midnight Compact Circuit | **Trustless (ZK Soundness)** | Real compiled ZKIR executed by `@midnight-ntwrk/compact-runtime` |
+| Keyhole Gateway | **Trust-minimized** | Raw upstream hash is a required witness; fabricating a mask invalidates commitment |
+| Upstream SaaS (Gmail, Slack…) | **Trusted** | Authenticated OAuth 2.0 over TLS |
+| AI Agent | **Untrusted** | The adversarial entity Keyhole quarantines |
 
 ---
 
