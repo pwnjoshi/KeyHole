@@ -275,16 +275,16 @@ app.get('/api/auth/google/url', (req: Request, res: Response): void => {
 app.get('/api/auth/google/callback', async (req: Request, res: Response): Promise<void> => {
   const code = req.query.code as string;
   if (!code) {
-    res.redirect('http://localhost:3000/integrations?error=No+code+provided');
+    res.redirect('/integrations?error=No+code+provided');
     return;
   }
 
   try {
     await gmailConnector.setAuthCode(code);
-    res.redirect('http://localhost:3000/integrations?connected=google');
+    res.redirect('/integrations?connected=google');
   } catch (err: any) {
     console.error('Google OAuth callback error:', err);
-    res.redirect(`http://localhost:3000/integrations?error=${encodeURIComponent(err.message)}`);
+    res.redirect(`/integrations?error=${encodeURIComponent(err.message)}`);
   }
 });
 
