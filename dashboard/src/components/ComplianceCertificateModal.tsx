@@ -87,15 +87,15 @@ export const ComplianceCertificateModal: React.FC<ComplianceCertificateModalProp
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[10px] uppercase font-mono tracking-widest text-indigo-700 font-black">
-                  Official Attestation Report
+                  SOC 2 &amp; HIPAA-Ready Compliance Report
                 </span>
                 <span className="text-[9px] uppercase font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300/60 flex items-center space-x-1">
                   <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                  <span>Auditor Verified</span>
+                  <span>Auditor-Ready</span>
                 </span>
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-0.5 font-serif">
-                Certificate of Zero-Knowledge Compliance
+                Zero-Knowledge Scope Compliance Attestation
               </h1>
               <p className="text-xs text-slate-500 font-mono flex items-center space-x-2 mt-0.5">
                 <span>ID: {certData ? certData.id : 'Loading...'}</span>
