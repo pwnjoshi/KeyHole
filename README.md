@@ -2,20 +2,42 @@
 
 > *"Your AI agent gets a keyhole, not the whole room — and Midnight proves it never saw more than that."*
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-AWS%20App%20Runner%20(Production)-FF9900?style=for-the-badge&logo=amazon-aws)](https://puvyfpwdq6.us-east-1.awsapprunner.com)
 [![Midnight Network](https://img.shields.io/badge/Midnight-Compact_v0.34_ZK_Circuit-6366f1.svg)](https://midnight.network)
 [![Hackathon](https://img.shields.io/badge/Hackathon-Midnight_AI_Track_2026-10b981.svg)](https://devpost.com)
 [![Supabase Database](https://img.shields.io/badge/Database-Supabase_Cloud_PostgreSQL-3ecf8e.svg)](https://supabase.com)
-[![Deploy on Vercel](https://img.shields.io/badge/Deploy-Vercel_Ready-black.svg)](https://vercel.com)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 **Keyhole** is a Zero-Knowledge runtime security perimeter for autonomous AI agents. Keyhole intercepts agent tool calls to sensitive enterprise services (Google Workspace, Microsoft 365, Slack, GitHub, PostgreSQL, Salesforce, Notion), redacts confidential message bodies, tokens, and PII server-side, and generates **sub-second Zero-Knowledge proofs on Midnight** verifying that the agent never saw data outside its declared scope.
 
 ---
 
+### 🌐 Live Production Deployment
+
+* **Live dApp URL**: **[https://puvyfpwdq6.us-east-1.awsapprunner.com](https://puvyfpwdq6.us-east-1.awsapprunner.com)**
+* **Public GitHub Repository**: **[https://github.com/pwnjoshi/Keyhole](https://github.com/pwnjoshi/Keyhole)**
+* **Live Health Check**: `GET https://puvyfpwdq6.us-east-1.awsapprunner.com/api/health`
+* **Midnight Contract Address**: `0x9f88c0a72199b0c2e334f51e0892781a0b3882711`
+
+---
+
+## ⚡ 2-Minute Fast-Track Demo for Judges
+
+| Step | Action in dApp | What Happens Behind the Scenes |
+|---|---|---|
+| **1. 1-Click Sandbox** | Navigate to **Judge Sandbox** | Runs 6 sub-150ms scenarios (Safe Audit, Exfiltration, Honeypot Canary, DB Masking) with zero setup required. |
+| **2. Autonomous Agent Studio** | Select **Gmail Receipts (In-Scope)** $\rightarrow$ Click **Dispatch Prompt** | Gateway verifies policy `[sender, subject, date]`, strips body text/auth tokens, and generates a **Midnight Compact ZK proof**. |
+| **3. Test Exfiltration Attack** | Select **Exfiltration Attack (Out-of-Scope)** $\rightarrow$ Click **Dispatch** | Pre-Fetch Guard **blocks the query at the perimeter** (HTTP 403) before touching external APIs. |
+| **4. 🚨 Trigger Canary Honeypot** | Select **Canary Trap (Zero-Day Attack)** $\rightarrow$ Click **Dispatch** | Honeypot Canary Trap triggers an immediate **HTTP 423 session lock**, quarantining the rogue agent. |
+| **5. ZK Circuit Explorer** | Click **ZK Explorer** in navigation | View the actual `.compact` smart contract, compiled ZKIR opcode constraints, and state commitments. |
+| **6. Compliance Certificate** | Click **SOC 2 Certificate** | Generates a cryptographically signed compliance audit report with JSON export and 1-page PDF print view. |
+
+---
+
 ## Key Highlights
 
 1. **Zero-Friction Judge Sandbox (`/sandbox`)**:
-   - 6 interactive 1-click scenarios (safe audits, prompt injections, zero-day canary honeypots, ephemeral scope TTLs, database masking) running in < 150ms with zero login required.
+   - 6 interactive 1-click scenarios running in < 150ms with zero login or setup required.
 2. **Formal Midnight Compact v0.34.0 Smart Contract**:
    - Mathematically proves `assert((response_mask & ~allowed_mask) == 0)` using Midnight's off-chain private witness memory. Zero confidential text touches public mempools.
 3. **100% Supabase Cloud PostgreSQL Backend**:
@@ -25,7 +47,7 @@
 5. **Universal Drop-in Agent SDK**:
    - Drop-in SDK for Python (`LangChain`, `CrewAI`), TypeScript (`OpenAI`, `Vercel AI SDK`), and cURL.
 6. **Enterprise Web3 Wallet**:
-   - Account-isolated Midnight Lace & Cardano Web3 wallet connections for on-chain proof attestation.
+   - Account-isolated Midnight Lace & Cardano Web3 wallet connections with 1-click Devnet faucet balance loading.
 
 ---
 
@@ -33,7 +55,7 @@
 
 | Judging Criterion | How Keyhole Delivers |
 |---|---|
-| **Technology** | Real, compiled **Midnight Compact v0.34 ZKIR contract** (`contracts/src/scope-policy.compact`), 8 live enterprise connectors, Supabase PostgreSQL persistence, and sub-second proving latency (< 150ms). |
+| **Technology** | Real, compiled **Midnight Compact v0.34 ZKIR contract** (`contracts/src/scope-policy.compact`), 8 live enterprise connectors, Supabase PostgreSQL persistence, AWS App Runner cloud deployment, and sub-second proving latency (< 150ms). |
 | **Originality** | Moves beyond static API token permissions to **per-request Zero-Knowledge mathematical attestations** verifying that AI agents never exfiltrated private fields. |
 | **Execution** | Production-grade dark/light responsive executive dashboard (React, Vite, Tailwind), Server-Sent Events (SSE) live audit stream, and canary honeypot quarantine barriers. |
 | **Completion** | 100% complete end-to-end flow: natural language prompt -> Pre-Fetch Barrier -> Server-Side Masking -> Compact ZK proof -> Real-time Dashboard -> Supabase Cloud. |
