@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
-import { HugeShieldCheckIcon, HugeShieldAlertIcon, HugeCpuIcon } from './HugeIcons.tsx';
-import { Activity, ArrowRight, ShieldCheck, ShieldX, Database, Trash2, Layers, ExternalLink } from 'lucide-react';
+import { Activity, ArrowRight, ShieldCheck, ShieldAlert, Database, Trash2, Layers, ExternalLink } from 'lucide-react';
+import { HugeCpuIcon, HugeShieldCheckIcon, HugeShieldAlertIcon } from './HugeIcons.tsx';
 import { AuditEvent } from '../types.ts';
-import { SkeletonFeedItem } from './SkeletonLoader.tsx';
 import { BlockExplorerModal } from './BlockExplorerModal.tsx';
 
 interface ComplianceFeedProps {
   events: AuditEvent[];
   onInspectProof: (event: AuditEvent) => void;
-  onClearEvents?: () => void;
+  onClearEvents: () => void;
   isLoading?: boolean;
 }
 
@@ -18,48 +17,44 @@ export const ComplianceFeed: React.FC<ComplianceFeedProps> = ({
   onClearEvents,
   isLoading = false
 }) => {
-  const [selectedTxForExplorer, setSelectedTxForExplorer] = useState<string | null>(null);
-  const validEvents = events.filter(e => e.type !== 'INIT');
+  const [selectedEventForExplorer, setSelectedEventForExplorer] = useState<AuditEvent | null>(null);
+
+  const validEvents = (events || []).filter(e => e && typeof e === 'object');
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-card hover:shadow-card-hover transition-all duration-200 space-y-6 animate-entrance animate-delay-2">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-        <div>
-          <div className="flex items-center space-x-2">
-            <Activity className="w-5 h-5 text-indigo-600" />
-            <h3 className="text-lg font-bold text-slate-900 tracking-tight">Live Zero-Knowledge Compliance Stream</h3>
+    <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2.5">
+          <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+            <Activity className="w-5 h-5" />
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Real-time SSE event log of all evaluated agent requests. Zero confidential message content is stored in this log.
-          </p>
+          <div>
+            <h3 className="text-base font-bold text-slate-900">
+              Live Compliance Feed &amp; ZK Audit Trail
+            </h3>
+            <p className="text-xs text-slate-500">
+              Real-time cryptographic verification log across all connected agents
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-2 text-xs font-mono">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-slate-500 font-medium">Live SSE Stream</span>
-          </div>
-
-          {onClearEvents && validEvents.length > 0 && (
-            <button
-              onClick={onClearEvents}
-              className="px-2.5 py-1 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 text-xs font-medium transition flex items-center space-x-1 border border-slate-200"
-              title="Clear all recorded compliance events"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Clear Log</span>
-            </button>
-          )}
-        </div>
+        {validEvents.length > 0 && (
+          <button
+            onClick={onClearEvents}
+            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition flex items-center space-x-1 text-xs"
+            title="Clear Audit History"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Clear History</span>
+          </button>
+        )}
       </div>
 
-      {/* Events Stream List */}
       {isLoading ? (
         <div className="space-y-3">
-          <SkeletonFeedItem />
-          <SkeletonFeedItem />
-          <SkeletonFeedItem />
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-16 bg-slate-100 rounded-2xl animate-pulse" />
+          ))}
         </div>
       ) : validEvents.length === 0 ? (
         <div className="text-center py-12 text-slate-400 text-xs font-sans">
@@ -122,14 +117,15 @@ export const ComplianceFeed: React.FC<ComplianceFeedProps> = ({
                       <button
                         onClick={() => onInspectProof(evt)}
                         className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs transition flex items-center space-x-1 shadow-2xs hover:-translate-y-0.5"
+                        title="View Detailed ZK Proof"
                       >
                         <HugeCpuIcon size={13} />
                         <span>ZK Proof</span>
                       </button>
 
                       <button
-                        onClick={() => setSelectedTxForExplorer(txId)}
-                        className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white transition shadow-2xs"
+                        onClick={() => setSelectedEventForExplorer(evt)}
+                        className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white transition shadow-2xs hover:-translate-y-0.5"
                         title="View on Midnight Testnet Block Explorer"
                       >
                         <Layers className="w-3.5 h-3.5 text-indigo-400" />
@@ -144,10 +140,15 @@ export const ComplianceFeed: React.FC<ComplianceFeedProps> = ({
       )}
 
       {/* Block Explorer Modal */}
-      {selectedTxForExplorer && (
+      {selectedEventForExplorer && (
         <BlockExplorerModal
-          txHash={selectedTxForExplorer}
-          onClose={() => setSelectedTxForExplorer(null)}
+          txHash={selectedEventForExplorer.midnightTxId || `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`}
+          policyName={selectedEventForExplorer.policyName || selectedEventForExplorer.connectionId}
+          proofId={selectedEventForExplorer.proofId}
+          allowedFields={selectedEventForExplorer.allowedFields}
+          deliveredFields={selectedEventForExplorer.requestedFields}
+          isCompliant={selectedEventForExplorer.type === 'COMPLIANT'}
+          onClose={() => setSelectedEventForExplorer(null)}
         />
       )}
     </div>

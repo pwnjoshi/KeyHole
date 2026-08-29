@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { HugeCpuIcon, HugeShieldCheckIcon } from './HugeIcons.tsx';
-import { X, CheckCircle2, ExternalLink, ShieldCheck, Hash, Terminal, Copy, Check, Layers } from 'lucide-react';
+import { X, CheckCircle2, ExternalLink, ShieldCheck, Hash, Terminal, Copy, Check, Layers, Lock, Shield } from 'lucide-react';
 import { AuditEvent } from '../types.ts';
 import { BlockExplorerModal } from './BlockExplorerModal.tsx';
 
@@ -19,6 +19,11 @@ export const ProofModal: React.FC<ProofModalProps> = ({ event, proof, onClose })
   const txId = proof?.midnightTxId || event?.midnightTxId || `0x8f29e102c34a9b8812ef0934bb7a61d02c918a7b3c4d5e6f7a8b9c0d1e2f3a4b`;
   const circuitName = proof?.circuitName || 'scope-policy.compact:verify_scope_membership';
   const isCompliant = proof ? proof.isCompliant : event?.type === 'COMPLIANT';
+  const policyName = event?.policyName || proof?.policyId || 'Expense Report Agent (Receipts Only)';
+  const allowedFields = event?.allowedFields || ['sender', 'subject', 'date'];
+  const policyCommitment = proof?.policyCommitment || (event?.proofDetails?.policyCommitment) || '0x3a9f02bc11284e9a01f78234bb7a61d02c918a7b3c4d5e6f7a8b9c0d1e2f3a4b';
+  const responseCommitment = proof?.responseCommitment || (event?.proofDetails?.responseCommitment) || '0x7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f';
+  const rawUpstreamHash = proof?.rawUpstreamHash || '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b';
 
   return createPortal(
     <div 
@@ -52,37 +57,49 @@ export const ProofModal: React.FC<ProofModalProps> = ({ event, proof, onClose })
         </div>
 
         {/* Verification Status */}
-        <div className="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 flex items-center justify-between">
+        <div className={`p-4 rounded-2xl border flex items-center justify-between ${
+          isCompliant ? 'bg-emerald-50/80 border-emerald-200' : 'bg-rose-50/80 border-rose-200'
+        }`}>
           <div className="flex items-center space-x-3">
-            <HugeShieldCheckIcon size={22} className="text-emerald-600" />
+            <HugeShieldCheckIcon size={22} className={isCompliant ? 'text-emerald-600' : 'text-rose-600'} />
             <div>
-              <span className="font-bold text-emerald-900 text-xs block">
-                {isCompliant ? 'Zero-Knowledge Proof Verified Valid' : 'Proof Constraint Rejection'}
+              <span className={`font-bold text-xs block ${isCompliant ? 'text-emerald-900' : 'text-rose-900'}`}>
+                {isCompliant ? 'Zero-Knowledge Proof Verified Compliant' : 'Proof Constraint Rejected'}
               </span>
-              <span className="text-[11px] text-emerald-700">
-                response_field_mask ⊆ declared_policy_mask
+              <span className={`text-[11px] font-mono ${isCompliant ? 'text-emerald-700' : 'text-rose-700'}`}>
+                (response_mask &amp; ~allowed_mask) == 0
               </span>
             </div>
           </div>
-          <span className="text-[10px] font-mono font-bold bg-white text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-200 uppercase">
-            On-Chain
+          <span className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border uppercase ${
+            isCompliant ? 'bg-white text-emerald-800 border-emerald-200' : 'bg-white text-rose-800 border-rose-200'
+          }`}>
+            {isCompliant ? 'Sound ZK Proof' : 'Blocked'}
           </span>
         </div>
 
         {/* Details Grid */}
         <div className="space-y-3 font-mono text-xs">
           <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-            <span className="text-[10px] text-slate-400 font-sans block">Proof Identifier:</span>
+            <span className="text-[10px] text-slate-400 font-sans block font-semibold">Proof Identifier:</span>
             <div className="font-bold text-slate-800 break-all">{proofId}</div>
           </div>
 
           <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-            <span className="text-[10px] text-slate-400 font-sans block">Compact Circuit Contract:</span>
+            <span className="text-[10px] text-slate-400 font-sans block font-semibold">Compact Circuit Target:</span>
             <div className="font-bold text-indigo-700 break-all">{circuitName}</div>
           </div>
 
           <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-            <div className="flex items-center justify-between text-[10px] text-slate-400 font-sans">
+            <div className="flex items-center justify-between text-[10px] text-slate-400 font-sans font-semibold">
+              <span>Upstream Payload SHA-256 Binding:</span>
+              <span className="text-emerald-600 font-normal">Pre-mask commitment</span>
+            </div>
+            <div className="font-bold text-slate-700 break-all text-[11px]">{rawUpstreamHash}</div>
+          </div>
+
+          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
+            <div className="flex items-center justify-between text-[10px] text-slate-400 font-sans font-semibold">
               <span>Midnight Cardano Tx Hash:</span>
               <button
                 onClick={() => {
@@ -117,7 +134,7 @@ export const ProofModal: React.FC<ProofModalProps> = ({ event, proof, onClose })
           <span>Network: Midnight Testnet Preview</span>
           <span className="text-emerald-700 font-semibold flex items-center space-x-1">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-            <span>0 Bytes Disclosed</span>
+            <span>0 Bytes Leaked to Chain</span>
           </span>
         </div>
 
@@ -125,6 +142,10 @@ export const ProofModal: React.FC<ProofModalProps> = ({ event, proof, onClose })
         {showExplorer && (
           <BlockExplorerModal
             txHash={txId}
+            policyName={policyName}
+            proofId={proofId}
+            allowedFields={allowedFields}
+            isCompliant={isCompliant}
             onClose={() => setShowExplorer(false)}
           />
         )}

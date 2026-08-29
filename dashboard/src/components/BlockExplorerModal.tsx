@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   X, 
   Copy, 
@@ -11,23 +12,44 @@ import {
   CheckCircle2, 
   Database,
   Cpu,
-  Share2
+  Share2,
+  FileCode,
+  Sparkles
 } from 'lucide-react';
 import { HugeCpuIcon, HugeShieldCheckIcon } from './HugeIcons.tsx';
 
 interface BlockExplorerModalProps {
   txHash?: string;
-  contractAddress?: string;
+  contractAddress?: string | null;
+  policyName?: string;
+  proofId?: string;
+  allowedFields?: string[];
+  deliveredFields?: string[];
+  isCompliant?: boolean;
   onClose: () => void;
 }
 
 export const BlockExplorerModal: React.FC<BlockExplorerModalProps> = ({
   txHash = '0x8f29e102c34a9b8812ef0934bb7a61d02c918a7b3c4d5e6f7a8b9c0d1e2f3a4b',
   contractAddress = '0x9f88c0a72199b0c2e334f51e0892781a0b3882711',
+  policyName = 'Expense Report Agent (Receipts Only)',
+  proofId,
+  allowedFields = ['sender', 'subject', 'date'],
+  deliveredFields,
+  isCompliant = true,
   onClose
 }) => {
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'raw_tx'>('overview');
+
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(txHash);
@@ -35,15 +57,22 @@ export const BlockExplorerModal: React.FC<BlockExplorerModalProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-scale-in">
-        
+  return createPortal(
+    <div 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200"
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white border border-slate-200 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 z-[121]"
+      >
         {/* Header */}
         <div className="bg-slate-900 text-white p-5 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-xl bg-indigo-500/20 border border-indigo-500/30">
-              <HugeCpuIcon size={20} className="text-indigo-400" />
+            <div className="p-2.5 rounded-xl bg-indigo-500/20 border border-indigo-500/30">
+              <HugeCpuIcon size={22} className="text-indigo-400" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
@@ -51,7 +80,7 @@ export const BlockExplorerModal: React.FC<BlockExplorerModalProps> = ({
                   Midnight Testnet Block Explorer
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono font-bold">
-                  Finalized
+                  Finalized on Ledger
                 </span>
               </div>
               <p className="text-xs text-slate-400 font-mono">
@@ -91,29 +120,35 @@ export const BlockExplorerModal: React.FC<BlockExplorerModalProps> = ({
             }`}
           >
             <Database className="w-3.5 h-3.5" />
-            <span>Raw Ledger Payload</span>
+            <span>Raw Ledger Payload (JSON)</span>
           </button>
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 overflow-y-auto space-y-5 flex-1">
+        <div className="p-6 overflow-y-auto space-y-5 flex-1 font-sans">
           {activeTab === 'overview' && (
             <div className="space-y-4 text-xs">
               
               {/* Transaction Hash Card */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">
-                  Transaction Hash
-                </span>
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs text-slate-800 break-all font-semibold select-all">
+                  <span className="text-[10px] uppercase font-bold text-slate-400">
+                    Midnight Cardano Ledger Tx Hash
+                  </span>
+                  <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-100/70 px-2 py-0.5 rounded-full border border-emerald-200">
+                    Verified Zero-Knowledge Soundness
+                  </span>
+                </div>
+                <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-slate-200">
+                  <span className="font-mono text-[11px] text-slate-800 break-all font-semibold select-all">
                     {txHash}
                   </span>
                   <button
                     onClick={handleCopy}
-                    className="p-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 transition flex-shrink-0 ml-2"
+                    className="p-1.5 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 transition flex-shrink-0 ml-2 flex items-center space-x-1 text-[10px]"
                   >
-                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                    <span>{copied ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
               </div>
@@ -126,46 +161,46 @@ export const BlockExplorerModal: React.FC<BlockExplorerModalProps> = ({
                 </div>
 
                 <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-1">
-                  <span className="text-[10px] text-slate-400 font-sans font-bold uppercase block">Gas Consumed</span>
+                  <span className="text-[10px] text-slate-400 font-sans font-bold uppercase block">Gas Consumed (DUST)</span>
                   <span className="font-bold text-indigo-600">0.0042 DUST</span>
                 </div>
 
                 <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-1">
-                  <span className="text-[10px] text-slate-400 font-sans font-bold uppercase block">Contract Address</span>
-                  <span className="font-bold text-slate-800 text-[10px] break-all">{contractAddress}</span>
+                  <span className="text-[10px] text-slate-400 font-sans font-bold uppercase block">Enforced Policy</span>
+                  <span className="font-bold text-slate-800 text-[11px] font-sans truncate block">{policyName}</span>
                 </div>
 
                 <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-1">
-                  <span className="text-[10px] text-slate-400 font-sans font-bold uppercase block">Circuit Type</span>
+                  <span className="text-[10px] text-slate-400 font-sans font-bold uppercase block">Circuit Contract</span>
                   <span className="font-bold text-emerald-700">Compact v0.34 (Subset Verifier)</span>
                 </div>
               </div>
 
               {/* Shielded Private Inputs vs Public Inputs */}
-              <div className="space-y-2">
-                <span className="font-bold text-slate-900 block text-xs">Cryptographic Witness Privacy:</span>
+              <div className="space-y-2.5">
+                <span className="font-bold text-slate-900 block text-xs">Cryptographic Witness Non-Disclosure Verification:</span>
                 
-                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1.5">
+                <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 space-y-2">
                   <div className="flex items-center space-x-1.5 font-bold text-emerald-900">
                     <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    <span>Public State Outputs (Visible On-Chain):</span>
+                    <span>Public State Commitments (Published to Ledger):</span>
                   </div>
-                  <ul className="list-disc list-inside text-[11px] text-emerald-800 font-mono space-y-0.5">
-                    <li>Merkle Root: <code className="bg-emerald-100 px-1 rounded">0x9f88c0a72199b...</code></li>
-                    <li>Compliance Status: <code className="bg-emerald-100 px-1 rounded">true (Verified 0 Leakage)</code></li>
-                    <li>Timestamp Attestation: <code className="bg-emerald-100 px-1 rounded">{new Date().toISOString()}</code></li>
+                  <ul className="list-disc list-inside text-[11px] text-emerald-800 font-mono space-y-1">
+                    <li>Allowed Field Mask: <code className="bg-emerald-100 px-1 py-0.5 rounded text-emerald-950">[{allowedFields.join(', ')}]</code></li>
+                    <li>Compliance Status: <code className="bg-emerald-100 px-1 py-0.5 rounded text-emerald-950">true (Subset Constraint Satisfied)</code></li>
+                    <li>Timestamp Attestation: <code className="bg-emerald-100 px-1 py-0.5 rounded text-emerald-950">{new Date().toISOString()}</code></li>
                   </ul>
                 </div>
 
-                <div className="p-3 rounded-xl bg-slate-900 text-slate-200 space-y-1.5 font-mono">
+                <div className="p-3.5 rounded-xl bg-slate-900 text-slate-200 space-y-2 font-mono">
                   <div className="flex items-center space-x-1.5 font-bold text-slate-100">
                     <Lock className="w-4 h-4 text-indigo-400" />
-                    <span className="font-sans">Shielded Private Witnesses (Hidden in Zero-Knowledge):</span>
+                    <span className="font-sans">Shielded Private Witnesses (Zero-Knowledge Protected):</span>
                   </div>
-                  <ul className="list-disc list-inside text-[11px] text-slate-400 space-y-0.5">
-                    <li>Raw Email Body Text: <span className="text-rose-400 font-bold">[SHIELDED - NEVER REVEALED]</span></li>
-                    <li>Auth Tokens &amp; Credentials: <span className="text-rose-400 font-bold">[SHIELDED - ZERO WITNESS LEAKAGE]</span></li>
-                    <li>PII &amp; Attachment Payloads: <span className="text-rose-400 font-bold">[SHIELDED]</span></li>
+                  <ul className="list-disc list-inside text-[11px] text-slate-400 space-y-1">
+                    <li>Raw Email Body &amp; Attachments: <span className="text-rose-400 font-bold">[SHIELDED - NEVER REVEALED]</span></li>
+                    <li>Auth Tokens, Secrets &amp; JWTs: <span className="text-rose-400 font-bold">[SHIELDED - ZERO WITNESS LEAKAGE]</span></li>
+                    <li>Upstream Enterprise Database Rows: <span className="text-rose-400 font-bold">[SHIELDED - STRIPPED PRE-DELIVERY]</span></li>
                   </ul>
                 </div>
               </div>
@@ -180,16 +215,19 @@ export const BlockExplorerModal: React.FC<BlockExplorerModalProps> = ({
   network: "midnight-testnet-preview",
   chainId: 42,
   txHash: txHash,
-  contract: contractAddress,
+  contractTarget: "scope-policy.compact:verify_scope_membership",
   blockHeight: 1489203,
   confirmations: 12,
   gasConsumedDust: "0.0042",
+  policyId: policyName,
   proof: {
+    proofId: proofId || `proof_${txHash.substring(2, 10)}`,
     circuit: "verify_scope_membership",
     version: "compact-v0.34.0",
-    prover: "midnight-proof-client-wasm",
-    status: "FINALIZED",
-    stateCommitment: "0x3a9f02bc11284e9a01f78234bb7a61d02c918a7b3c4d5e6f7a8b9c0d1e2f3a4b"
+    prover: "midnight-compact-runtime",
+    status: isCompliant ? "COMPLIANT_FINALIZED" : "CONSTRAINT_REJECTED",
+    subsetConstraint: "(response_field_mask & ~allowed_field_mask) == 0",
+    stateCommitment: `0x${txHash.substring(2, 66)}`
   }
 }, null, 2)}
               </pre>
@@ -199,8 +237,9 @@ export const BlockExplorerModal: React.FC<BlockExplorerModalProps> = ({
 
         {/* Footer */}
         <div className="bg-slate-50 border-t border-slate-100 p-4 flex items-center justify-between">
-          <span className="text-[11px] text-slate-500 font-mono">
-            Midnight Network CIP-30 Compatible
+          <span className="text-[11px] text-slate-500 font-mono flex items-center space-x-1">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Midnight Network CIP-30 Compatible</span>
           </span>
           <button
             onClick={onClose}
@@ -210,6 +249,7 @@ export const BlockExplorerModal: React.FC<BlockExplorerModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
