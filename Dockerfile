@@ -3,16 +3,11 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy root and workspace package files
-COPY package*.json ./
-COPY gateway/package*.json ./gateway/
-COPY dashboard/package*.json ./dashboard/
-
-# Install dependencies
-RUN npm ci
-
-# Copy source code
+# Copy all repository source files
 COPY . .
+
+# Install dependencies across all workspaces
+RUN npm install
 
 # Build both backend gateway and frontend dashboard
 RUN npm run build:prod
@@ -29,9 +24,6 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/gateway/dist ./gateway/dist
 COPY --from=builder /app/gateway/package*.json ./gateway/
 COPY --from=builder /app/dashboard/dist ./dashboard/dist
-
-# Create storage directory for embedded SQLite WAL database
-RUN mkdir -p /app/gateway/data
 
 EXPOSE 4000
 
