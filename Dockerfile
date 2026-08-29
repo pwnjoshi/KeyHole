@@ -6,8 +6,9 @@ WORKDIR /app
 # Copy all repository source files
 COPY . .
 
-# Install dependencies across all workspaces
+# Install dependencies with Linux platform binaries
 RUN npm install
+RUN npm install --prefix dashboard @rollup/rollup-linux-x64-gnu
 
 # Build both backend gateway and frontend dashboard
 RUN npm run build:prod
