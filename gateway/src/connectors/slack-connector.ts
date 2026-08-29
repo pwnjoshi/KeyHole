@@ -47,7 +47,7 @@ export class SlackConnector implements DataConnector {
 
     if (!isValidFormat) {
       throw new Error(
-        `Invalid Slack Bot Token format "${rawToken.substring(0, 12)}...". Slack Bot tokens must begin with 'xoxb-' or 'xoxp-'. If testing without live keys, click '⚡ Autofill Sandbox Keys'.`
+        `Invalid Slack Bot Token format "${rawToken.substring(0, 12)}...". Slack Bot tokens must begin with 'xoxb-' or 'xoxp-'. If testing without live keys, click 'Autofill Sandbox Keys'.`
       );
     }
 

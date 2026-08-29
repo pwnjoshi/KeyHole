@@ -47,7 +47,7 @@ export class SalesforceConnector implements DataConnector {
 
     if (!isValidDomain && !isSandbox) {
       throw new Error(
-        `Invalid Salesforce Domain "${instanceUrl}". Domains must end with '.my.salesforce.com' or '.force.com'. If testing without live keys, click '⚡ Autofill Sandbox Keys'.`
+        `Invalid Salesforce Domain "${instanceUrl}". Domains must end with '.my.salesforce.com' or '.force.com'. If testing without live keys, click 'Autofill Sandbox Keys'.`
       );
     }
 

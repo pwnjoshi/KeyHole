@@ -21,7 +21,7 @@
 
 ---
 
-## ⚡ 2-Minute Fast-Track Demo for Judges
+## 2-Minute Fast-Track Demo for Judges
 
 | Step | Action in dApp | What Happens Behind the Scenes |
 |---|---|---|

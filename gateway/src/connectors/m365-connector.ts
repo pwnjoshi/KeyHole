@@ -47,7 +47,7 @@ export class M365Connector implements DataConnector {
 
     if (!isGuid && !isSandbox) {
       throw new Error(
-        `Invalid Microsoft 365 Azure Client ID format "${rawClientId.substring(0, 10)}...". Azure Client IDs must be a valid 36-character UUID (e.g. 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d). If testing without live keys, click '⚡ Autofill Sandbox Keys'.`
+        `Invalid Microsoft 365 Azure Client ID format "${rawClientId.substring(0, 10)}...". Azure Client IDs must be a valid 36-character UUID (e.g. 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d). If testing without live keys, click 'Autofill Sandbox Keys'.`
       );
     }
 

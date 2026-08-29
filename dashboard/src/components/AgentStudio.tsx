@@ -328,7 +328,7 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
               ) : (
                 <>
                   <Users className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>⚡ Multi-Agent Swarm Demo</span>
+                  <span>Multi-Agent Swarm Demo</span>
                 </>
               )}
             </button>
@@ -552,7 +552,7 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
                 {!isSwarmRunning && swarmResults.length === 0 && (
                   <div className="py-12 text-center text-xs text-slate-400 space-y-2">
                     <Users className="w-7 h-7 text-slate-300 mx-auto" />
-                    <p>Click "Run Swarm" or "⚡ Multi-Agent Swarm Demo" to test multi-tenant agent security.</p>
+                    <p>Click "Run Swarm" or "Multi-Agent Swarm Demo" to test multi-tenant agent security.</p>
                   </div>
                 )}
 

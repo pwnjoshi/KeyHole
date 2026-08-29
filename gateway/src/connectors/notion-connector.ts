@@ -45,7 +45,7 @@ export class NotionConnector implements DataConnector {
 
     if (!isValidFormat) {
       throw new Error(
-        `Invalid Notion Integration Secret format "${rawToken.substring(0, 10)}...". Notion secrets must begin with 'secret_' or 'ntn_'. If testing without live keys, click '⚡ Autofill Sandbox Keys'.`
+        `Invalid Notion Integration Secret format "${rawToken.substring(0, 10)}...". Notion secrets must begin with 'secret_' or 'ntn_'. If testing without live keys, click 'Autofill Sandbox Keys'.`
       );
     }
 

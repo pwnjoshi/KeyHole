@@ -501,7 +501,7 @@ export const IntegrationsHub: React.FC = () => {
             className="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs border border-indigo-200 transition flex items-center space-x-1.5 shadow-2xs"
           >
             <Zap className="w-3.5 h-3.5 text-indigo-600" />
-            <span>⚡ Load Sandbox Demo Keys</span>
+            <span>Load Sandbox Demo Keys</span>
           </button>
 
           {totalConnectedCount > 0 && (
@@ -749,7 +749,7 @@ export const IntegrationsHub: React.FC = () => {
                   onClick={() => handleAutofillSandbox(selectedServiceForModal.id)}
                   className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] transition shadow-2xs"
                 >
-                  ⚡ Autofill Sandbox Keys
+                  Autofill Sandbox Keys
                 </button>
               </div>
 
@@ -782,7 +782,7 @@ export const IntegrationsHub: React.FC = () => {
                       className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition flex items-center justify-center space-x-2 shadow-sm"
                     >
                       <Sparkles className="w-3.5 h-3.5" />
-                      <span>⚡ Instant Connect Demo Workspace (joshipawan2021@gmail.com)</span>
+                      <span>Instant Connect Demo Workspace (joshipawan2021@gmail.com)</span>
                     </button>
                   </div>
 

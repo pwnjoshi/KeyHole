@@ -54,7 +54,7 @@ export const LaceWalletModal: React.FC<LaceWalletModalProps> = ({
         return;
       } else {
         setErrorMessage(
-          'Lace Wallet browser extension was not detected in this browser. You can click "⚡ Connect Demo Midnight Testnet Wallet" below for instant sandbox testing!'
+          'Lace Wallet browser extension was not detected in this browser. You can click "Connect Demo Midnight Testnet Wallet" below for instant sandbox testing!'
         );
       }
     } catch (err: any) {
@@ -191,7 +191,7 @@ export const LaceWalletModal: React.FC<LaceWalletModalProps> = ({
               className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition flex items-center justify-center space-x-2"
             >
               <Zap className="w-4 h-4 text-amber-300" />
-              <span>⚡ Connect Demo Midnight Testnet Wallet</span>
+              <span>Connect Demo Midnight Testnet Wallet</span>
             </button>
 
             {/* Primary Extension Connect Button */}

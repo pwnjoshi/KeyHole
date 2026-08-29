@@ -49,7 +49,7 @@ export class GitHubConnector implements DataConnector {
 
     if (!isValidFormat) {
       throw new Error(
-        `Invalid GitHub Token format "${rawToken.substring(0, 10)}...". GitHub Personal Access Tokens (classic or fine-grained) must begin with 'ghp_' or 'github_pat_'. If testing without live keys, click '⚡ Autofill Sandbox Keys'.`
+        `Invalid GitHub Token format "${rawToken.substring(0, 10)}...". GitHub Personal Access Tokens (classic or fine-grained) must begin with 'ghp_' or 'github_pat_'. If testing without live keys, click 'Autofill Sandbox Keys'.`
       );
     }
 

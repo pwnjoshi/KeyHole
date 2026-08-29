@@ -44,7 +44,7 @@ export class PostgresConnector implements DataConnector {
 
     if (!isValidFormat) {
       throw new Error(
-        `Invalid PostgreSQL connection URI "${uri.substring(0, 15)}...". URIs must begin with 'postgresql://' or 'postgres://' (e.g. postgresql://user:pass@host:5432/dbname). If testing without live keys, click '⚡ Autofill Sandbox Keys'.`
+        `Invalid PostgreSQL connection URI "${uri.substring(0, 15)}...". URIs must begin with 'postgresql://' or 'postgres://' (e.g. postgresql://user:pass@host:5432/dbname). If testing without live keys, click 'Autofill Sandbox Keys'.`
       );
     }
 
