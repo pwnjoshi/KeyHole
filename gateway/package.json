@@ -2,7 +2,8 @@
   "name": "keyhole-gateway",
   "version": "1.0.0",
   "description": "Zero-Knowledge Policy Enforcement Gateway for AI Agents",
-  "main": "src/index.ts",
+  "type": "module",
+  "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",

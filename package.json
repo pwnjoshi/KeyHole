@@ -2,6 +2,7 @@
   "name": "keyhole-monorepo",
   "version": "1.0.0",
   "description": "Zero-knowledge policy enforcement gateway for AI agents on Midnight",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev:gateway": "npm run dev --prefix gateway",
