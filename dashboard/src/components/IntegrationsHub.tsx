@@ -770,11 +770,11 @@ export const IntegrationsHub: React.FC = () => {
                   {/* Instant Demo Option */}
                   <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl">
                     <div className="flex items-center space-x-2 mb-1.5">
-                      <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
-                      <span className="font-bold text-xs text-emerald-900">Recommended for Hackathon Testing</span>
+                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                      <span className="font-bold text-xs text-emerald-900">Hackathon Sandbox Demo Workspace</span>
                     </div>
                     <p className="text-[11px] text-emerald-700 leading-relaxed mb-3">
-                      Connect simulated enterprise inbox (<code className="font-mono bg-emerald-100 px-1 py-0.5 rounded text-emerald-900">joshipawan2021@gmail.com</code>) with real email feeds, zero-knowledge privacy filtering, and proof generation without GCP OAuth setup.
+                      Loads pre-configured simulated enterprise invoices (AWS, DigitalOcean, GitHub) under tenant <code className="font-mono bg-emerald-100 px-1 py-0.5 rounded text-emerald-900">joshipawan2021@gmail.com</code> for safe zero-knowledge policy testing. (Does not access your personal Gmail inbox).
                     </p>
                     <button
                       type="button"
@@ -782,7 +782,7 @@ export const IntegrationsHub: React.FC = () => {
                       className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition flex items-center justify-center space-x-2 shadow-sm"
                     >
                       <Sparkles className="w-3.5 h-3.5" />
-                      <span>Instant Connect Demo Workspace (joshipawan2021@gmail.com)</span>
+                      <span>Connect Sandbox Demo Workspace (joshipawan2021@gmail.com)</span>
                     </button>
                   </div>
 
