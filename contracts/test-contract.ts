@@ -66,10 +66,10 @@ async function runTests() {
 
   const allowedMaskA = computeFieldMask(allowedFieldsA);
   const responseMaskA = computeFieldMask(responseFieldsA);
-  const isValidA = isSubset(responseMaskA, allowedMaskA);
 
   const policyIdA = stringToBytes32('policy_receipts_v1');
   const policyCommitmentA = stringToBytes32(`policy:${allowedMaskA.toString()}`);
+  const rawUpstreamHashA = stringToBytes32('upstream_raw_invoice_payload_hash_123');
   const responseCommitmentA = stringToBytes32(`req_001:${responseMaskA.toString()}`);
 
   const circuitContextA = createCircuitContext(
@@ -86,9 +86,9 @@ async function runTests() {
       policyIdA,
       policyCommitmentA,
       responseCommitmentA,
+      rawUpstreamHashA,
       allowedMaskA,
-      responseMaskA,
-      isValidA
+      responseMaskA
     );
     const qCtx = resultA.context.queryContexts[address];
     const currentLedger = ledger(qCtx.state);
@@ -99,21 +99,21 @@ async function runTests() {
     console.log('   Counter Value   :', currentLedger.verification_counter.toString());
     console.log('   [SUCCESS] Case A generated valid Zero-Knowledge proof and updated ledger state.');
   } catch (err: any) {
-    console.error('   [FAILURE] Case A threw unexpected error:', err.message);
+    console.error('   [FAIL] Case A threw unexpected error:', err.message);
     process.exit(1);
   }
 
-  // TEST CASE B: Response contains unauthorized/disallowed field
-  console.log('\n--- TEST CASE B: Out-of-Scope Response (Disallowed Field) ---');
-  const allowedFieldsB = ['sender', 'subject'];
-  const responseFieldsB = ['sender', 'subject', 'body']; // 'body' is unauthorized
+  // TEST CASE B: Out-of-scope exfiltration attempt (body requested & returned)
+  console.log('\n--- TEST CASE B: Disallowed Field Exfiltration Attempt ---');
+  const allowedFieldsB = ['sender', 'subject', 'date'];
+  const responseFieldsB = ['sender', 'subject', 'date', 'body'];
 
   const allowedMaskB = computeFieldMask(allowedFieldsB);
   const responseMaskB = computeFieldMask(responseFieldsB);
-  const isValidB = isSubset(responseMaskB, allowedMaskB); // false!
 
   const policyIdB = stringToBytes32('policy_receipts_v1');
   const policyCommitmentB = stringToBytes32(`policy:${allowedMaskB.toString()}`);
+  const rawUpstreamHashB = stringToBytes32('upstream_raw_invoice_payload_hash_456');
   const responseCommitmentB = stringToBytes32(`req_002:${responseMaskB.toString()}`);
 
   const circuitContextB = createCircuitContext(
@@ -124,43 +124,37 @@ async function runTests() {
     basePrivateState
   );
 
-  let caseBRejectedAsExpected = false;
   try {
-    console.log('   Allowed Fields  :', allowedFieldsB.join(', '));
-    console.log('   Response Fields :', responseFieldsB.join(', '), '(Disallowed field "body" present)');
-    console.log('   Executing circuit assertion...');
     await contract.circuits.verify_scope_membership(
       circuitContextB,
       policyIdB,
       policyCommitmentB,
       responseCommitmentB,
+      rawUpstreamHashB,
       allowedMaskB,
-      responseMaskB,
-      isValidB
+      responseMaskB
     );
-  } catch (err: any) {
-    caseBRejectedAsExpected = true;
-    console.log('   [SUCCESS] Circuit correctly rejected transaction with ZK constraint assertion error:');
-    console.log('   =>', err.message);
-  }
-
-  if (!caseBRejectedAsExpected) {
-    console.error('   [FAILURE] Case B should have failed circuit verification but succeeded!');
+    console.error('   [FAIL] Case B should have rejected but succeeded.');
     process.exit(1);
+  } catch (err: any) {
+    console.log('   Allowed Fields  :', allowedFieldsB.join(', '));
+    console.log('   Response Fields :', responseFieldsB.join(', '));
+    console.log('   Circuit Error   :', err.message || err);
+    console.log('   [SUCCESS] Case B was mathematically rejected by Midnight Compact circuit as expected.');
   }
 
-  // TEST CASE C: Empty response (0 fields returned)
-  console.log('\n--- TEST CASE C: Empty Response (Trivial In-Scope) ---');
+  // TEST CASE C: Empty set
+  console.log('\n--- TEST CASE C: Empty Field Set (Edge Case) ---');
   const allowedFieldsC = ['sender', 'subject', 'date'];
   const responseFieldsC: string[] = [];
 
   const allowedMaskC = computeFieldMask(allowedFieldsC);
-  const responseMaskC = computeFieldMask(responseFieldsC); // 0n
-  const isValidC = isSubset(responseMaskC, allowedMaskC);
+  const responseMaskC = computeFieldMask(responseFieldsC);
 
   const policyIdC = stringToBytes32('policy_receipts_v1');
   const policyCommitmentC = stringToBytes32(`policy:${allowedMaskC.toString()}`);
-  const responseCommitmentC = stringToBytes32(`req_003:empty`);
+  const rawUpstreamHashC = stringToBytes32('upstream_raw_invoice_payload_hash_789');
+  const responseCommitmentC = stringToBytes32(`req_003:${responseMaskC.toString()}`);
 
   const circuitContextC = createCircuitContext(
     'verify_scope_membership',
@@ -176,29 +170,28 @@ async function runTests() {
       policyIdC,
       policyCommitmentC,
       responseCommitmentC,
+      rawUpstreamHashC,
       allowedMaskC,
-      responseMaskC,
-      isValidC
+      responseMaskC
     );
     const qCtx = resultC.context.queryContexts[address];
     const currentLedger = ledger(qCtx.state);
 
     console.log('   Allowed Fields  :', allowedFieldsC.join(', '));
-    console.log('   Response Fields : (empty set)');
+    console.log('   Response Fields : (empty)');
     console.log('   Compliance State:', currentLedger.compliance_verified ? 'VERIFIED (PASS)' : 'FAILED');
-    console.log('   Counter Value   :', currentLedger.verification_counter.toString());
-    console.log('   [SUCCESS] Case C empty response passed trivially.');
+    console.log('   [SUCCESS] Case C empty set subset verified successfully.');
   } catch (err: any) {
-    console.error('   [FAILURE] Case C threw error:', err.message);
+    console.error('   [FAIL] Case C threw unexpected error:', err.message);
     process.exit(1);
   }
 
   console.log('\n===============================================================');
-  console.log('  ALL 3 COMPACT CIRCUIT TEST CASES PASSED SOLIDLY!');
+  console.log('  ALL 3 MIDNIGHT COMPACT ZK VERIFICATION TESTS PASSED (100%)');
   console.log('===============================================================\n');
 }
 
-runTests().catch((err) => {
-  console.error('Test execution failed:', err);
+runTests().catch(err => {
+  console.error('Fatal error during contract testing:', err);
   process.exit(1);
 });

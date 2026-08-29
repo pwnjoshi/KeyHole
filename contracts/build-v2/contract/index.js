@@ -69,9 +69,9 @@ export class Contract {
         const policy_id_0 = args_1[1];
         const policy_commitment_0 = args_1[2];
         const response_commitment_0 = args_1[3];
-        const allowed_field_mask_0 = args_1[4];
-        const response_field_mask_0 = args_1[5];
-        const is_subset_valid_0 = args_1[6];
+        const raw_upstream_payload_hash_0 = args_1[4];
+        const allowed_field_mask_0 = args_1[5];
+        const response_field_mask_0 = args_1[6];
         const max_records_0 = args_1[7];
         const actual_records_0 = args_1[8];
         const min_allowed_timestamp_0 = args_1[9];
@@ -104,26 +104,26 @@ export class Contract {
                                      'Bytes<32>',
                                      response_commitment_0)
         }
-        if (!(typeof(allowed_field_mask_0) === 'bigint' && allowed_field_mask_0 >= 0n && allowed_field_mask_0 <= 4294967295n)) {
+        if (!(raw_upstream_payload_hash_0.buffer instanceof ArrayBuffer && raw_upstream_payload_hash_0.BYTES_PER_ELEMENT === 1 && raw_upstream_payload_hash_0.length === 32)) {
           __compactRuntime.typeError('verify_scope_compliance_v2',
                                      'argument 4 (argument 5 as invoked from Typescript)',
+                                     'scope-policy-v2.compact line 12 char 1',
+                                     'Bytes<32>',
+                                     raw_upstream_payload_hash_0)
+        }
+        if (!(typeof(allowed_field_mask_0) === 'bigint' && allowed_field_mask_0 >= 0n && allowed_field_mask_0 <= 4294967295n)) {
+          __compactRuntime.typeError('verify_scope_compliance_v2',
+                                     'argument 5 (argument 6 as invoked from Typescript)',
                                      'scope-policy-v2.compact line 12 char 1',
                                      'Uint<0..4294967296>',
                                      allowed_field_mask_0)
         }
         if (!(typeof(response_field_mask_0) === 'bigint' && response_field_mask_0 >= 0n && response_field_mask_0 <= 4294967295n)) {
           __compactRuntime.typeError('verify_scope_compliance_v2',
-                                     'argument 5 (argument 6 as invoked from Typescript)',
+                                     'argument 6 (argument 7 as invoked from Typescript)',
                                      'scope-policy-v2.compact line 12 char 1',
                                      'Uint<0..4294967296>',
                                      response_field_mask_0)
-        }
-        if (!(typeof(is_subset_valid_0) === 'boolean')) {
-          __compactRuntime.typeError('verify_scope_compliance_v2',
-                                     'argument 6 (argument 7 as invoked from Typescript)',
-                                     'scope-policy-v2.compact line 12 char 1',
-                                     'Boolean',
-                                     is_subset_valid_0)
         }
         if (!(typeof(max_records_0) === 'bigint' && max_records_0 >= 0n && max_records_0 <= 4294967295n)) {
           __compactRuntime.typeError('verify_scope_compliance_v2',
@@ -156,8 +156,8 @@ export class Contract {
         const context = __compactRuntime.copyCircuitContext(contextOrig_0);
         const partialProofData = {
           input: {
-            value: _descriptor_2.toValue(policy_id_0).concat(_descriptor_2.toValue(policy_commitment_0).concat(_descriptor_2.toValue(response_commitment_0).concat(_descriptor_3.toValue(allowed_field_mask_0).concat(_descriptor_3.toValue(response_field_mask_0).concat(_descriptor_0.toValue(is_subset_valid_0).concat(_descriptor_3.toValue(max_records_0).concat(_descriptor_3.toValue(actual_records_0).concat(_descriptor_4.toValue(min_allowed_timestamp_0).concat(_descriptor_4.toValue(oldest_record_timestamp_0)))))))))),
-            alignment: _descriptor_2.alignment().concat(_descriptor_2.alignment().concat(_descriptor_2.alignment().concat(_descriptor_3.alignment().concat(_descriptor_3.alignment().concat(_descriptor_0.alignment().concat(_descriptor_3.alignment().concat(_descriptor_3.alignment().concat(_descriptor_4.alignment().concat(_descriptor_4.alignment())))))))))
+            value: _descriptor_2.toValue(policy_id_0).concat(_descriptor_2.toValue(policy_commitment_0).concat(_descriptor_2.toValue(response_commitment_0).concat(_descriptor_2.toValue(raw_upstream_payload_hash_0).concat(_descriptor_3.toValue(allowed_field_mask_0).concat(_descriptor_3.toValue(response_field_mask_0).concat(_descriptor_3.toValue(max_records_0).concat(_descriptor_3.toValue(actual_records_0).concat(_descriptor_4.toValue(min_allowed_timestamp_0).concat(_descriptor_4.toValue(oldest_record_timestamp_0)))))))))),
+            alignment: _descriptor_2.alignment().concat(_descriptor_2.alignment().concat(_descriptor_2.alignment().concat(_descriptor_2.alignment().concat(_descriptor_3.alignment().concat(_descriptor_3.alignment().concat(_descriptor_3.alignment().concat(_descriptor_3.alignment().concat(_descriptor_4.alignment().concat(_descriptor_4.alignment())))))))))
           },
           output: undefined,
           publicTranscript: [],
@@ -168,9 +168,9 @@ export class Contract {
                                                                   policy_id_0,
                                                                   policy_commitment_0,
                                                                   response_commitment_0,
+                                                                  raw_upstream_payload_hash_0,
                                                                   allowed_field_mask_0,
                                                                   response_field_mask_0,
-                                                                  is_subset_valid_0,
                                                                   max_records_0,
                                                                   actual_records_0,
                                                                   min_allowed_timestamp_0,
@@ -203,6 +203,7 @@ export class Contract {
     }
     const state_0 = new __compactRuntime.ContractState();
     let stateValue_0 = __compactRuntime.StateValue.newArray();
+    stateValue_0 = stateValue_0.arrayPush(__compactRuntime.StateValue.newNull());
     stateValue_0 = stateValue_0.arrayPush(__compactRuntime.StateValue.newNull());
     stateValue_0 = stateValue_0.arrayPush(__compactRuntime.StateValue.newNull());
     stateValue_0 = stateValue_0.arrayPush(__compactRuntime.StateValue.newNull());
@@ -243,6 +244,16 @@ export class Contract {
                                                  value: __compactRuntime.StateValue.newCell({ value: _descriptor_8.toValue(2n),
                                                                                               alignment: _descriptor_8.alignment() }).encode() } },
                                        { push: { storage: true,
+                                                 value: __compactRuntime.StateValue.newCell({ value: _descriptor_2.toValue(new Uint8Array(32)),
+                                                                                              alignment: _descriptor_2.alignment() }).encode() } },
+                                       { ins: { cached: false, n: 1 } }]);
+    __compactRuntime.queryLedgerState(context,
+                                      partialProofData,
+                                      [
+                                       { push: { storage: false,
+                                                 value: __compactRuntime.StateValue.newCell({ value: _descriptor_8.toValue(3n),
+                                                                                              alignment: _descriptor_8.alignment() }).encode() } },
+                                       { push: { storage: true,
                                                  value: __compactRuntime.StateValue.newCell({ value: _descriptor_0.toValue(false),
                                                                                               alignment: _descriptor_0.alignment() }).encode() } },
                                        { ins: { cached: false, n: 1 } }]);
@@ -250,7 +261,7 @@ export class Contract {
                                       partialProofData,
                                       [
                                        { push: { storage: false,
-                                                 value: __compactRuntime.StateValue.newCell({ value: _descriptor_8.toValue(3n),
+                                                 value: __compactRuntime.StateValue.newCell({ value: _descriptor_8.toValue(4n),
                                                                                               alignment: _descriptor_8.alignment() }).encode() } },
                                        { push: { storage: true,
                                                  value: __compactRuntime.StateValue.newCell({ value: _descriptor_4.toValue(0n),
@@ -268,16 +279,14 @@ export class Contract {
                                       policy_id_0,
                                       policy_commitment_0,
                                       response_commitment_0,
+                                      raw_upstream_payload_hash_0,
                                       allowed_field_mask_0,
                                       response_field_mask_0,
-                                      is_subset_valid_0,
                                       max_records_0,
                                       actual_records_0,
                                       min_allowed_timestamp_0,
                                       oldest_record_timestamp_0)
   {
-    __compactRuntime.assert(is_subset_valid_0,
-                            'Keyhole ZK Error: Response contains fields outside declared policy allowlist');
     __compactRuntime.assert(response_field_mask_0 <= allowed_field_mask_0,
                             'Keyhole ZK Error: Response bitmask exceeds policy allowlist bitmask');
     __compactRuntime.assert(actual_records_0 <= max_records_0,
@@ -311,6 +320,16 @@ export class Contract {
                                                  value: __compactRuntime.StateValue.newCell({ value: _descriptor_8.toValue(2n),
                                                                                               alignment: _descriptor_8.alignment() }).encode() } },
                                        { push: { storage: true,
+                                                 value: __compactRuntime.StateValue.newCell({ value: _descriptor_2.toValue(raw_upstream_payload_hash_0),
+                                                                                              alignment: _descriptor_2.alignment() }).encode() } },
+                                       { ins: { cached: false, n: 1 } }]);
+    __compactRuntime.queryLedgerState(context,
+                                      partialProofData,
+                                      [
+                                       { push: { storage: false,
+                                                 value: __compactRuntime.StateValue.newCell({ value: _descriptor_8.toValue(3n),
+                                                                                              alignment: _descriptor_8.alignment() }).encode() } },
+                                       { push: { storage: true,
                                                  value: __compactRuntime.StateValue.newCell({ value: _descriptor_0.toValue(true),
                                                                                               alignment: _descriptor_0.alignment() }).encode() } },
                                        { ins: { cached: false, n: 1 } }]);
@@ -322,7 +341,7 @@ export class Contract {
                                                 pushPath: true,
                                                 path: [
                                                        { tag: 'value',
-                                                         value: { value: _descriptor_8.toValue(3n),
+                                                         value: { value: _descriptor_8.toValue(4n),
                                                                   alignment: _descriptor_8.alignment() } }] } },
                                        { addi: { immediate: parseInt(__compactRuntime.valueToBigInt(
                                                               { value: _descriptor_1.toValue(tmp_0),
@@ -375,6 +394,20 @@ export function ledger(stateOrChargedState) {
                                                                         { popeq: { cached: false,
                                                                                    result: undefined } }]).value);
     },
+    get last_upstream_hash() {
+      return _descriptor_2.fromValue(__compactRuntime.queryLedgerState(context,
+                                                                       partialProofData,
+                                                                       [
+                                                                        { dup: { n: 0 } },
+                                                                        { idx: { cached: false,
+                                                                                 pushPath: false,
+                                                                                 path: [
+                                                                                        { tag: 'value',
+                                                                                          value: { value: _descriptor_8.toValue(2n),
+                                                                                                   alignment: _descriptor_8.alignment() } }] } },
+                                                                        { popeq: { cached: false,
+                                                                                   result: undefined } }]).value);
+    },
     get compliance_verified() {
       return _descriptor_0.fromValue(__compactRuntime.queryLedgerState(context,
                                                                        partialProofData,
@@ -384,7 +417,7 @@ export function ledger(stateOrChargedState) {
                                                                                  pushPath: false,
                                                                                  path: [
                                                                                         { tag: 'value',
-                                                                                          value: { value: _descriptor_8.toValue(2n),
+                                                                                          value: { value: _descriptor_8.toValue(3n),
                                                                                                    alignment: _descriptor_8.alignment() } }] } },
                                                                         { popeq: { cached: false,
                                                                                    result: undefined } }]).value);
@@ -398,7 +431,7 @@ export function ledger(stateOrChargedState) {
                                                                                  pushPath: false,
                                                                                  path: [
                                                                                         { tag: 'value',
-                                                                                          value: { value: _descriptor_8.toValue(3n),
+                                                                                          value: { value: _descriptor_8.toValue(4n),
                                                                                                    alignment: _descriptor_8.alignment() } }] } },
                                                                         { popeq: { cached: true,
                                                                                    result: undefined } }]).value);
@@ -413,7 +446,7 @@ export const pureCircuits = {};
 export const contractReferenceLocations =
   { tag: 'publicLedgerArray', indices: { } };
 export const expectedVk = {
-  'verify_scope_compliance_v2': '863d40aa59f6cc95ab88f3d668b584860c52becf16da916efee94c33e5c74dfd',
+  'verify_scope_compliance_v2': 'd571980ac4cc9dae14ad41aa178090e5d507c31c3dc46d22931a64dc19697850',
 };
 
 //# sourceMappingURL=index.js.map

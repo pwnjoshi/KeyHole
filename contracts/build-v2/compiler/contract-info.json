@@ -30,6 +30,13 @@
           }
         },
         {
+          "name": "raw_upstream_payload_hash",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        },
+        {
           "name": "allowed_field_mask",
           "type": {
             "type-name": "Uint",
@@ -41,12 +48,6 @@
           "type": {
             "type-name": "Uint",
             "maxval": 4294967295
-          }
-        },
-        {
-          "name": "is_subset_valid",
-          "type": {
-            "type-name": "Boolean"
           }
         },
         {
@@ -111,8 +112,18 @@
       }
     },
     {
-      "name": "compliance_verified",
+      "name": "last_upstream_hash",
       "index": 2,
+      "exported": true,
+      "storage": "Cell",
+      "type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
+      "name": "compliance_verified",
+      "index": 3,
       "exported": true,
       "storage": "Cell",
       "type": {
@@ -121,7 +132,7 @@
     },
     {
       "name": "verification_counter",
-      "index": 3,
+      "index": 4,
       "exported": true,
       "storage": "Counter"
     }

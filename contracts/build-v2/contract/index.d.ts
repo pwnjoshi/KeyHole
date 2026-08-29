@@ -8,9 +8,9 @@ export type ImpureCircuits<PS> = {
                              policy_id_0: Uint8Array,
                              policy_commitment_0: Uint8Array,
                              response_commitment_0: Uint8Array,
+                             raw_upstream_payload_hash_0: Uint8Array,
                              allowed_field_mask_0: bigint,
                              response_field_mask_0: bigint,
-                             is_subset_valid_0: boolean,
                              max_records_0: bigint,
                              actual_records_0: bigint,
                              min_allowed_timestamp_0: bigint,
@@ -22,9 +22,9 @@ export type ProvableCircuits<PS> = {
                              policy_id_0: Uint8Array,
                              policy_commitment_0: Uint8Array,
                              response_commitment_0: Uint8Array,
+                             raw_upstream_payload_hash_0: Uint8Array,
                              allowed_field_mask_0: bigint,
                              response_field_mask_0: bigint,
-                             is_subset_valid_0: boolean,
                              max_records_0: bigint,
                              actual_records_0: bigint,
                              min_allowed_timestamp_0: bigint,
@@ -39,9 +39,9 @@ export type Circuits<PS> = {
                              policy_id_0: Uint8Array,
                              policy_commitment_0: Uint8Array,
                              response_commitment_0: Uint8Array,
+                             raw_upstream_payload_hash_0: Uint8Array,
                              allowed_field_mask_0: bigint,
                              response_field_mask_0: bigint,
-                             is_subset_valid_0: boolean,
                              max_records_0: bigint,
                              actual_records_0: bigint,
                              min_allowed_timestamp_0: bigint,
@@ -51,6 +51,7 @@ export type Circuits<PS> = {
 export type Ledger = {
   readonly last_policy_commitment: Uint8Array;
   readonly last_response_commitment: Uint8Array;
+  readonly last_upstream_hash: Uint8Array;
   readonly compliance_verified: boolean;
   readonly verification_counter: bigint;
 }

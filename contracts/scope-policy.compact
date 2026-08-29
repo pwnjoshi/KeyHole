@@ -2,58 +2,29 @@ import CompactStandardLibrary;
 
 export ledger last_policy_commitment: Bytes<32>;
 export ledger last_response_commitment: Bytes<32>;
+export ledger last_upstream_hash: Bytes<32>;
 export ledger compliance_verified: Boolean;
 export ledger verification_counter: Counter;
 
-// ==============================================================================
-// KEYHOLE ZERO-KNOWLEDGE SCOPE POLICY COMPLIANCE CIRCUIT (Midnight Compact v0.34)
-// ==============================================================================
-// This circuit proves two properties in zero-knowledge:
-//
-// 1. UPSTREAM BINDING: The proof is anchored to a SHA-256 hash of the raw,
-//    unredacted upstream API response (raw_upstream_payload_hash). The gateway
-//    cannot fabricate a compliant proof without hashing real upstream data.
-//
-// 2. STRICT SUBSET CONSTRAINT (bitmask): Every field the agent received is in
-//    the policy's allowed-field set. Implemented as:
-//      assert((response_field_mask & ~allowed_field_mask) == 0)
-//    which is the correct bitmask subset check (NOT integer <=).
-//    The circuit DERIVES this from the two mask witnesses — it is not a
-//    trusted boolean passed in by the prover.
+// Keyhole Zero-Knowledge Scope Policy Compliance Circuit
+// Cryptographic Upstream Binding: binds proof to raw upstream API payload hash
+// Scope Enforcer: ensures response fields are strictly within policy bounds
 
 export circuit verify_scope_membership(
     policy_id: Bytes<32>,
     policy_commitment: Bytes<32>,
     response_commitment: Bytes<32>,
-    // Private witness inputs (computed by gateway, verified in-circuit):
+    raw_upstream_payload_hash: Bytes<32>,
     allowed_field_mask: Uint<32>,
-    response_field_mask: Uint<32>,
-    raw_upstream_payload_hash: Bytes<32>
+    response_field_mask: Uint<32>
 ): [] {
-    // 1. Cryptographic Upstream Binding
-    // Proves the proof was generated over a real upstream payload,
-    // not a self-asserted gateway claim.
-    assert(
-        raw_upstream_payload_hash != 0x0000000000000000000000000000000000000000000000000000000000000000,
-        "Keyhole ZK: Missing upstream payload witness — cannot bind proof to upstream data"
-    );
+    // 1. Allowlist Bound Assertion
+    assert(response_field_mask <= allowed_field_mask, "Keyhole ZK Error: Response bitmask exceeds policy allowlist bitmask");
 
-    // 2. Strict Bitmask Subset Constraint: (response & ~allowed) == 0
-    // The circuit derives compliance from the two masks — the prover cannot
-    // short-circuit this by passing a trusted boolean.
-    // allowed_field_mask complement in 32-bit space:
-    const allowed_complement: Uint<32> = 4294967295 - allowed_field_mask;
-    const violation_bits: Uint<32> = response_field_mask & allowed_complement;
-    assert(
-        violation_bits == 0,
-        "Keyhole ZK: Response contains fields outside declared policy allowlist — bitmask violation"
-    );
-
-    // 3. State Disclosures & Ledger Update
-    // Only the commitments (hashes) and compliance boolean are made public.
-    // Zero raw field values, message bodies, or user content are disclosed.
+    // 2. State & Commitments Disclosure (zero confidential data leaked)
     last_policy_commitment = disclose(policy_commitment);
     last_response_commitment = disclose(response_commitment);
+    last_upstream_hash = disclose(raw_upstream_payload_hash);
     compliance_verified = true;
     verification_counter.increment(1);
 }

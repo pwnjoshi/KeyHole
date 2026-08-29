@@ -7,52 +7,52 @@
     "type": "directory",
     "contract-info.json": {
       "type": "file",
-      "size": 1970,
-      "hash": "bbd4ffa85376b42e32017f6a41d597a3903356fe4401c4e11f2e287485fe6c55"
+      "size": 2195,
+      "hash": "fd6d0abf29ac915620b90c261e7a4e6d91a4467f1930301f51e120b162c26384"
     }
   },
   "contract": {
     "type": "directory",
     "index.d.ts": {
       "type": "file",
-      "size": 2529,
-      "hash": "c3815fafbd0f5aaf3d863940098e6823025d4f2772e12716d4cb8b22f8b1cd0a"
+      "size": 2611,
+      "hash": "edf330f46d9bf57b56293c2006d01b48e1e57b2d02451d255d664d93da22f071"
     },
     "index.js": {
       "type": "file",
-      "size": 24774,
-      "hash": "24e369d880a42dee01f3d30a835129c34942ca5cda65da0fbb11b595ceeacca4"
+      "size": 27959,
+      "hash": "1793526bfc4e037454000790ef92ab0d75c244732a835b0bf45526b114f6974c"
     },
     "index.js.map": {
       "type": "file",
-      "size": 1132,
-      "hash": "56e93479869bf5c02ecf0f12d89e6a9f71defb89822a349daa163ca9ba00e566"
+      "size": 1209,
+      "hash": "0cb65d3c9368d57bde4f69548a2b23ee4cd5faf34f625bdac4557817df30910d"
     }
   },
   "zkir": {
     "type": "directory",
     "verify_scope_membership.bzkir": {
       "type": "file",
-      "size": 225,
-      "hash": "53b30b06c11043d77c936253687135e87a26ef9e7dba8f0a8971d7f22b21552c"
+      "size": 266,
+      "hash": "bfbb729ae55455e2c9ccac88692b5553066394f6710265c56b212507e753fbaf"
     },
     "verify_scope_membership.zkir": {
       "type": "file",
-      "size": 3714,
-      "hash": "4d52d9223a516dbaf3921ba27e601964f33fc25c15d21d1b18055c537a963755"
+      "size": 4513,
+      "hash": "5aefb8e38d59a2465d6e633687ba0af519a2a145c5a0d351e8821871a0457c3a"
     }
   },
   "keys": {
     "type": "directory",
     "verify_scope_membership.prover": {
       "type": "file",
-      "size": 287307,
-      "hash": "6d674bbfd978c227aecbbe54183d77daf575a1634b5e78539aa7aabdb73d5276"
+      "size": 551355,
+      "hash": "0a686071cf87502c4cab247ae8b710de68429c00a02615d2f52486abb729692e"
     },
     "verify_scope_membership.verifier": {
       "type": "file",
       "size": 1351,
-      "hash": "9cdf6fcb321698078a5644d53f2d8653d71df926289c872f14fc58d21fc3fb72"
+      "hash": "ccbe084280d7788628c50b9e7d2de9d81e4b621d5e91c7433fcad16e42ec971a"
     }
   }
 }

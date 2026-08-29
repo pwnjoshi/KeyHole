@@ -8,7 +8,7 @@ import { Contract } from '../build/contract/index.js';
 
 export interface ScopeProofOutput {
   proofId: string;
-  contractAddress: string;   // dummyContractAddress() from compact-runtime — local simulation
+  contractAddress: string | null;
   circuitName: string;
   policyCommitment: string;
   responseCommitment: string;
@@ -66,12 +66,6 @@ export function computeFieldMask(fields: string[]): bigint {
   return mask;
 }
 
-/**
- * Correct bitmask subset: (response & ~allowed) == 0
- * This mirrors the assertion in scope-policy.compact (updated source).
- * NOTE: the compiled index.js still uses the old is_subset_valid witness approach —
- * we pass the correctly computed value so the circuit receives truth, not a fabrication.
- */
 export function isSubset(responseMask: bigint, allowedMask: bigint): boolean {
   return (responseMask & ~allowedMask) === 0n;
 }
@@ -108,26 +102,19 @@ export async function verifyAndProveScope(
 
   const allowedMask = computeFieldMask(allowedFields);
   const responseMask = computeFieldMask(responseFields);
-
-  // Correct bitmask subset check — (response & ~allowed) == 0
-  // NOTE: the compiled circuit (build/contract/index.js) was compiled from the original
-  // scope-policy.compact which has is_subset_valid as a witness. We pass the truthfully
-  // computed value here — we do not fabricate it. The updated .compact source (in repo)
-  // now derives this in-circuit; it will take effect when recompiled.
   const violationBits = responseMask & ~allowedMask;
   const isValid = violationBits === 0n;
 
   const policyBytes = stringToBytes32(policyId);
   const policyCommitmentBytes = stringToBytes32(`policy:${policyId}:${allowedMask.toString()}`);
 
-  // Upstream hash: SHA-256 of the raw unredacted upstream response
+  // Cryptographic upstream binding: hash raw unredacted upstream API response
   const serializedRaw = rawUpstreamPayload
     ? (typeof rawUpstreamPayload === 'string' ? rawUpstreamPayload : JSON.stringify(rawUpstreamPayload))
     : `${requestId}:${responseMask.toString()}`;
   const rawUpstreamHashBytes = sha256(new TextEncoder().encode(serializedRaw));
   const rawUpstreamHashHex = '0x' + Buffer.from(rawUpstreamHashBytes).toString('hex');
 
-  // Response commitment anchored to upstream hash
   const responseCommitmentBytes = stringToBytes32(`req:${requestId}:${rawUpstreamHashHex}:${responseMask.toString()}`);
 
   const policyCommitmentHex = Buffer.from(policyCommitmentBytes).toString('hex');
@@ -145,31 +132,28 @@ export async function verifyAndProveScope(
   );
 
   try {
-    // Call the compiled circuit with its actual signature (from build/contract/index.d.ts):
-    //   verify_scope_membership(context, policy_id, policy_commitment, response_commitment,
-    //                            allowed_field_mask, response_field_mask, is_subset_valid)
-    // is_subset_valid is passed as the truthfully computed bitmask result — not fabricated.
+    // Exact newly compiled Compact circuit signature:
+    // (context, policy_id, policy_commitment, response_commitment, raw_upstream_payload_hash, allowed_field_mask, response_field_mask)
     await contract.circuits.verify_scope_membership(
       circuitContext,
       policyBytes,
       policyCommitmentBytes,
       responseCommitmentBytes,
+      rawUpstreamHashBytes,
       allowedMask,
-      responseMask,
-      isValid          // truthfully computed: (responseMask & ~allowedMask) === 0n
+      responseMask
     );
-  } catch {
-    // Circuit threw — either isValid=false (policy violation) or circuit internal error.
+  } catch (err: any) {
     return {
       proofId: `proof_${requestId}`,
-      contractAddress: address,
+      contractAddress: null,
       circuitName: 'verify_scope_membership',
       policyCommitment: policyCommitmentHex,
       responseCommitment: responseCommitmentHex,
       rawUpstreamHash: rawUpstreamHashHex,
-      allowedFieldMask: '0x' + allowedMask.toString(16),
-      responseFieldMask: '0x' + responseMask.toString(16),
-      violationBits: '0x' + violationBits.toString(16),
+      allowedFieldMask: '0x' + allowedMask.toString(16).padStart(8, '0'),
+      responseFieldMask: '0x' + responseMask.toString(16).padStart(8, '0'),
+      violationBits: '0x' + violationBits.toString(16).padStart(8, '0'),
       isCompliant: false,
       timestamp: new Date().toISOString()
     };
@@ -177,14 +161,14 @@ export async function verifyAndProveScope(
 
   return {
     proofId: `proof_${requestId}`,
-    contractAddress: address,
+    contractAddress: null,
     circuitName: 'verify_scope_membership',
     policyCommitment: policyCommitmentHex,
     responseCommitment: responseCommitmentHex,
     rawUpstreamHash: rawUpstreamHashHex,
-    allowedFieldMask: '0x' + allowedMask.toString(16),
-    responseFieldMask: '0x' + responseMask.toString(16),
-    violationBits: '0x' + violationBits.toString(16),
+    allowedFieldMask: '0x' + allowedMask.toString(16).padStart(8, '0'),
+    responseFieldMask: '0x' + responseMask.toString(16).padStart(8, '0'),
+    violationBits: '0x' + violationBits.toString(16).padStart(8, '0'),
     isCompliant: isValid,
     timestamp: new Date().toISOString(),
     midnightTxId

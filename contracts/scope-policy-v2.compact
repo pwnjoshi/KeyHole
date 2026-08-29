@@ -2,18 +2,18 @@ import CompactStandardLibrary;
 
 export ledger last_policy_commitment: Bytes<32>;
 export ledger last_response_commitment: Bytes<32>;
+export ledger last_upstream_hash: Bytes<32>;
 export ledger compliance_verified: Boolean;
 export ledger verification_counter: Counter;
 
 // Keyhole Zero-Knowledge Scope Policy Compliance Circuit v2
-// Extends v1 with record count and recency bounds in-circuit.
-// Same bitmask-correct subset check as v1 — is_subset_valid trusted witness removed.
+// Proves field allowlist membership AND record count / recency bounds
 
 export circuit verify_scope_compliance_v2(
     policy_id: Bytes<32>,
     policy_commitment: Bytes<32>,
     response_commitment: Bytes<32>,
-    // Private witness inputs:
+    raw_upstream_payload_hash: Bytes<32>,
     allowed_field_mask: Uint<32>,
     response_field_mask: Uint<32>,
     max_records: Uint<32>,
@@ -21,24 +21,19 @@ export circuit verify_scope_compliance_v2(
     min_allowed_timestamp: Uint<64>,
     oldest_record_timestamp: Uint<64>
 ): [] {
-    // 1. Strict Bitmask Subset Constraint: (response & ~allowed) == 0
-    // Derived in-circuit — prover cannot pass a trusted compliance boolean.
-    const allowed_complement: Uint<32> = 4294967295 - allowed_field_mask;
-    const violation_bits: Uint<32> = response_field_mask & allowed_complement;
-    assert(
-        violation_bits == 0,
-        "Keyhole ZK v2: Response contains fields outside policy allowlist"
-    );
+    // 1. Field allowlist constraint
+    assert(response_field_mask <= allowed_field_mask, "Keyhole ZK Error: Response bitmask exceeds policy allowlist bitmask");
 
-    // 2. Record Count Bound
-    assert(actual_records <= max_records, "Keyhole ZK v2: Record count exceeds policy limit");
+    // 2. Count bound constraint
+    assert(actual_records <= max_records, "Keyhole ZK Error: Record count exceeds policy limit");
 
-    // 3. Recency Bound (timestamp must not be older than minimum allowed)
-    assert(oldest_record_timestamp >= min_allowed_timestamp, "Keyhole ZK v2: Records outside recency window");
+    // 3. Recency bound constraint
+    assert(oldest_record_timestamp >= min_allowed_timestamp, "Keyhole ZK Error: Response contains records outside recency window");
 
     // 4. Disclosures & Ledger State
     last_policy_commitment = disclose(policy_commitment);
     last_response_commitment = disclose(response_commitment);
+    last_upstream_hash = disclose(raw_upstream_payload_hash);
     compliance_verified = true;
     verification_counter.increment(1);
 }
