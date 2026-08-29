@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "file": "index.js",
+  "sourceRoot": "../../",
+  "sources": ["scope-policy.compact"],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAAA;;;;;;;;;;MAWA,AAAA,uBAoBC;;;;;cAnBG,WAAoB;cACpB,mBAA4B;cAC5B,qBAA8B;cAE9B,oBAA4B;cAC5B,qBAA6B;cAC7B,iBAAwB;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;yCANxB,WAAoB,+BACpB,mBAA4B,+BAC5B,qBAA8B,+BAE9B,oBAA4B,+BAC5B,qBAA6B,+BAC7B,iBAAwB;;;;;;;;;+DANxB,WAAoB;+DACpB,mBAA4B;+DAC5B,qBAA8B;+DAE9B,oBAA4B;+DAC5B,qBAA6B;+DAC7B,iBAAwB;;;;OAa3B;;;;;;;;GACA;EAhCD;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IAEA;;;;;;;;;yEAAgD;IAChD;;;;;;;;;yEAAkD;IAClD;;;;;;;;;yEAA2C;IAC3C;;;;;;;;;yEAA4C;;;;;;;GA2B3C;EArBD,AAAA,gCAoBC;;mCAnBG,WAAoB;mCACpB,mBAA4B;mCAC5B,qBAA8B;mCAE9B,oBAA4B;mCAC5B,qBAA6B;mCAC7B,iBAAwB;;4BAIjB,iBAAe;;4BACf,qBAAmB,IAAI,oBAAkB;;IAIhD;;;;;;;2HAAkC,mBAAiB;;yEAA7B;IACtB;;;;;;;2HAAoC,qBAAmB;;yEAA/B;IACxB;;;;;;;;;yEAAmB;UACnB,KAAoB;IAApB;;;;;;;;;;6FAAA,KAAoB;;;;wEAAA;;GACvB;;;;;;;;;;;;;;;;IA7BD;qCAAA;;;;;;;;;;;0GAAgD;KAAA;IAChD;qCAAA;;;;;;;;;;;0GAAkD;KAAA;IAClD;qCAAA;;;;;;;;;;;0GAA2C;KAAA;IAC3C;qCAAA;;;;;;;;;;;0GAA4C;KAAA;;;;;;;;;;;;;;"
+}

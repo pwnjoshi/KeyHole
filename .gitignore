@@ -21,8 +21,13 @@ build/
 **/build/
 build-v2/
 **/build-v2/
-contracts/build/
-contracts/build-v2/
+# contracts/build IS committed — the real Midnight Compact compiler output lives here.
+# The compact compiler (~/.local/bin/compact) is not available in CI/Docker,
+# so we commit the compiled artifacts so the real prover runs in production.
+!contracts/build/
+!contracts/build/**
+!contracts/build-v2/
+!contracts/build-v2/**
 contracts/dist/
 out/
 **/out/

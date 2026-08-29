@@ -157,23 +157,23 @@ export const LaceWalletModal: React.FC<LaceWalletModalProps> = ({
               </div>
             </div>
 
-            {/* Testnet Token Balances (DUST + tNIGHT) */}
+            {/* Testnet Token Balances (illustrative — Midnight Testnet does not yet expose a CIP-30 balance query API) */}
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                 <span className="text-[10px] uppercase font-bold text-slate-400 font-mono block">DUST (Shielded Gas)</span>
                 <span className="font-bold text-indigo-700 text-base font-mono">{dustBalance} DUST</span>
-                <p className="text-[9px] text-slate-500 font-sans">Shielded proof computation fuel</p>
+                <p className="text-[9px] text-slate-500 font-sans">Illustrative testnet balance</p>
               </div>
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                 <span className="text-[10px] uppercase font-bold text-slate-400 font-mono block">tNIGHT (Testnet Token)</span>
                 <span className="font-bold text-slate-900 text-base font-mono">{nightBalance} tNIGHT</span>
-                <p className="text-[9px] text-slate-500 font-sans">Midnight governance &amp; staking</p>
+                <p className="text-[9px] text-slate-500 font-sans">Illustrative testnet balance</p>
               </div>
             </div>
 
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-1 text-slate-600">
               <span className="font-bold text-slate-900 block">Active Network: Midnight Testnet Preview (Chain ID: 4202)</span>
-              <p className="text-[11px]">Your wallet keypair is actively authorized to anchor ZK scope policies and verify on-chain proofs.</p>
+              <p className="text-[11px]">Your wallet keypair is authorized to anchor ZK scope policies. Balances shown are illustrative — Midnight Testnet does not yet expose a public balance RPC.</p>
             </div>
 
             <button

@@ -6,8 +6,8 @@ export ledger compliance_verified: Boolean;
 export ledger verification_counter: Counter;
 
 // Keyhole Zero-Knowledge Scope Policy Compliance Circuit v2
-// Proves field allowlist membership AND record count / recency bounds
-// without revealing record content, individual timestamps, or private fields.
+// Extends v1 with record count and recency bounds in-circuit.
+// Same bitmask-correct subset check as v1 — is_subset_valid trusted witness removed.
 
 export circuit verify_scope_compliance_v2(
     policy_id: Bytes<32>,
@@ -16,21 +16,25 @@ export circuit verify_scope_compliance_v2(
     // Private witness inputs:
     allowed_field_mask: Uint<32>,
     response_field_mask: Uint<32>,
-    is_subset_valid: Boolean,
     max_records: Uint<32>,
     actual_records: Uint<32>,
     min_allowed_timestamp: Uint<64>,
     oldest_record_timestamp: Uint<64>
 ): [] {
-    // 1. Field allowlist constraint
-    assert(is_subset_valid, "Keyhole ZK Error: Response contains fields outside declared policy allowlist");
-    assert(response_field_mask <= allowed_field_mask, "Keyhole ZK Error: Response bitmask exceeds policy allowlist bitmask");
+    // 1. Strict Bitmask Subset Constraint: (response & ~allowed) == 0
+    // Derived in-circuit — prover cannot pass a trusted compliance boolean.
+    const allowed_complement: Uint<32> = 4294967295 - allowed_field_mask;
+    const violation_bits: Uint<32> = response_field_mask & allowed_complement;
+    assert(
+        violation_bits == 0,
+        "Keyhole ZK v2: Response contains fields outside policy allowlist"
+    );
 
-    // 2. Count bound constraint
-    assert(actual_records <= max_records, "Keyhole ZK Error: Record count exceeds policy limit");
+    // 2. Record Count Bound
+    assert(actual_records <= max_records, "Keyhole ZK v2: Record count exceeds policy limit");
 
-    // 3. Recency bound constraint (timestamp must not be older than minimum allowed)
-    assert(oldest_record_timestamp >= min_allowed_timestamp, "Keyhole ZK Error: Response contains records outside recency window");
+    // 3. Recency Bound (timestamp must not be older than minimum allowed)
+    assert(oldest_record_timestamp >= min_allowed_timestamp, "Keyhole ZK v2: Records outside recency window");
 
     // 4. Disclosures & Ledger State
     last_policy_commitment = disclose(policy_commitment);

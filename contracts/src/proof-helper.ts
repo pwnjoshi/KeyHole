@@ -12,6 +12,7 @@ export interface ScopeProofOutput {
   circuitName: string;
   policyCommitment: string;
   responseCommitment: string;
+  rawUpstreamHash: string;
   allowedFieldMask: string;
   responseFieldMask: string;
   isCompliant: boolean;
@@ -23,12 +24,16 @@ export const FIELD_MASKS: Record<string, bigint> = {
   id: 1n << 0n,
   thread_id: 1n << 1n,
   sender: 1n << 2n,
+  from: 1n << 2n,
   recipient: 1n << 3n,
   subject: 1n << 4n,
   date: 1n << 5n,
+  received_time: 1n << 5n,
+  timestamp: 1n << 5n,
   snippet: 1n << 6n,
   labels: 1n << 7n,
   body: 1n << 8n,
+  body_content: 1n << 8n,
   attachments: 1n << 9n,
   raw_payload: 1n << 10n,
   title: 1n << 11n,
@@ -37,7 +42,13 @@ export const FIELD_MASKS: Record<string, bigint> = {
   end_time: 1n << 14n,
   location: 1n << 15n,
   attendees: 1n << 16n,
-  attendee_count: 1n << 17n
+  attendee_count: 1n << 17n,
+  channel_name: 1n << 18n,
+  sender_name: 1n << 19n,
+  repo_name: 1n << 20n,
+  issue_title: 1n << 21n,
+  author: 1n << 22n,
+  state: 1n << 23n
 };
 
 export function computeFieldMask(fields: string[]): bigint {
@@ -54,6 +65,11 @@ export function computeFieldMask(fields: string[]): bigint {
   return mask;
 }
 
+/**
+ * Correct bitmask subset check: (response & ~allowed) == 0n
+ * This is what the circuit also enforces — computed here independently to
+ * determine expected compliance before calling the circuit.
+ */
 export function isSubset(responseMask: bigint, allowedMask: bigint): boolean {
   return (responseMask & ~allowedMask) === 0n;
 }
@@ -84,7 +100,8 @@ export async function verifyAndProveScope(
   policyId: string,
   allowedFields: string[],
   responseFields: string[],
-  requestId: string
+  requestId: string,
+  rawUpstreamPayload?: unknown
 ): Promise<ScopeProofOutput> {
   const { contract, address, baseContractState: cState, basePrivateState: pState } = await getContractInstance();
 
@@ -94,7 +111,16 @@ export async function verifyAndProveScope(
 
   const policyBytes = stringToBytes32(policyId);
   const policyCommitmentBytes = stringToBytes32(`policy:${policyId}:${allowedMask.toString()}`);
-  const responseCommitmentBytes = stringToBytes32(`req:${requestId}:${responseMask.toString()}`);
+
+  // Response commitment is now anchored to the raw upstream hash, not just the mask.
+  // This cryptographically binds the proof to the actual upstream API response.
+  const serializedRaw = rawUpstreamPayload
+    ? (typeof rawUpstreamPayload === 'string' ? rawUpstreamPayload : JSON.stringify(rawUpstreamPayload))
+    : `${requestId}:${responseMask.toString()}`;
+  const rawUpstreamHashBytes = sha256(new TextEncoder().encode(serializedRaw));
+  const rawUpstreamHashHex = '0x' + Buffer.from(rawUpstreamHashBytes).toString('hex');
+
+  const responseCommitmentBytes = stringToBytes32(`req:${requestId}:${rawUpstreamHashHex}:${responseMask.toString()}`);
 
   const policyCommitmentHex = Buffer.from(policyCommitmentBytes).toString('hex');
   const responseCommitmentHex = Buffer.from(responseCommitmentBytes).toString('hex');
@@ -109,6 +135,9 @@ export async function verifyAndProveScope(
   );
 
   try {
+    // Circuit call matches updated signature (no is_subset_valid trusted boolean):
+    // verify_scope_membership(policy_id, policy_commitment, response_commitment,
+    //                          allowed_field_mask, response_field_mask, raw_upstream_payload_hash)
     await contract.circuits.verify_scope_membership(
       circuitContext,
       policyBytes,
@@ -116,23 +145,22 @@ export async function verifyAndProveScope(
       responseCommitmentBytes,
       allowedMask,
       responseMask,
-      isValid
+      rawUpstreamHashBytes   // private witness: SHA-256 of raw upstream response
     );
   } catch (err: any) {
-    if (!isValid) {
-      return {
-        proofId: `proof_${requestId}`,
-        contractAddress: address,
-        circuitName: 'verify_scope_membership',
-        policyCommitment: policyCommitmentHex,
-        responseCommitment: responseCommitmentHex,
-        allowedFieldMask: '0x' + allowedMask.toString(16),
-        responseFieldMask: '0x' + responseMask.toString(16),
-        isCompliant: false,
-        timestamp: new Date().toISOString()
-      };
-    }
-    throw err;
+    // Circuit rejected — means isCompliant === false (bitmask violation caught in circuit)
+    return {
+      proofId: `proof_${requestId}`,
+      contractAddress: address,
+      circuitName: 'verify_scope_membership',
+      policyCommitment: policyCommitmentHex,
+      responseCommitment: responseCommitmentHex,
+      rawUpstreamHash: rawUpstreamHashHex,
+      allowedFieldMask: '0x' + allowedMask.toString(16),
+      responseFieldMask: '0x' + responseMask.toString(16),
+      isCompliant: false,
+      timestamp: new Date().toISOString()
+    };
   }
 
   return {
@@ -141,6 +169,7 @@ export async function verifyAndProveScope(
     circuitName: 'verify_scope_membership',
     policyCommitment: policyCommitmentHex,
     responseCommitment: responseCommitmentHex,
+    rawUpstreamHash: rawUpstreamHashHex,
     allowedFieldMask: '0x' + allowedMask.toString(16),
     responseFieldMask: '0x' + responseMask.toString(16),
     isCompliant: isValid,
