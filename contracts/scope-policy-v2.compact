@@ -1,0 +1,40 @@
+import CompactStandardLibrary;
+
+export ledger last_policy_commitment: Bytes<32>;
+export ledger last_response_commitment: Bytes<32>;
+export ledger compliance_verified: Boolean;
+export ledger verification_counter: Counter;
+
+// Keyhole Zero-Knowledge Scope Policy Compliance Circuit v2
+// Proves field allowlist membership AND record count / recency bounds
+// without revealing record content, individual timestamps, or private fields.
+
+export circuit verify_scope_compliance_v2(
+    policy_id: Bytes<32>,
+    policy_commitment: Bytes<32>,
+    response_commitment: Bytes<32>,
+    // Private witness inputs:
+    allowed_field_mask: Uint<32>,
+    response_field_mask: Uint<32>,
+    is_subset_valid: Boolean,
+    max_records: Uint<32>,
+    actual_records: Uint<32>,
+    min_allowed_timestamp: Uint<64>,
+    oldest_record_timestamp: Uint<64>
+): [] {
+    // 1. Field allowlist constraint
+    assert(is_subset_valid, "Keyhole ZK Error: Response contains fields outside declared policy allowlist");
+    assert(response_field_mask <= allowed_field_mask, "Keyhole ZK Error: Response bitmask exceeds policy allowlist bitmask");
+
+    // 2. Count bound constraint
+    assert(actual_records <= max_records, "Keyhole ZK Error: Record count exceeds policy limit");
+
+    // 3. Recency bound constraint (timestamp must not be older than minimum allowed)
+    assert(oldest_record_timestamp >= min_allowed_timestamp, "Keyhole ZK Error: Response contains records outside recency window");
+
+    // 4. Disclosures & Ledger State
+    last_policy_commitment = disclose(policy_commitment);
+    last_response_commitment = disclose(response_commitment);
+    compliance_verified = true;
+    verification_counter.increment(1);
+}

@@ -1,0 +1,35 @@
+[
+  {
+    "id": "conn_receipts_bot",
+    "name": "Expense Report Agent (Receipts Only)",
+    "connectorId": "gmail",
+    "description": "Scans inbox for receipts to summarize monthly expenses. Has access only to sender, subject, and date on receipt labels.",
+    "allowedFields": ["sender", "subject", "date"],
+    "allowedLabels": ["INBOX", "RECEIPTS", "CATEGORY_PURCHASES"],
+    "maxMessageCount": 15,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_newsletter_digest",
+    "name": "Weekly Newsletter Digest Bot",
+    "connectorId": "gmail",
+    "description": "Compiles a weekly summary of subscribed newsletters. Restricted to sender, subject, date, and snippet.",
+    "allowedFields": ["sender", "subject", "date", "snippet"],
+    "allowedLabels": ["NEWSLETTERS", "CATEGORY_UPDATES"],
+    "maxMessageCount": 10,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_calendar_scheduler",
+    "name": "Executive Scheduling Assistant",
+    "connectorId": "gcal",
+    "description": "Assists with meeting scheduling. Allowed to see event summary, start time, end time, and attendee count only.",
+    "allowedFields": ["title", "start_time", "end_time", "attendee_count"],
+    "allowedLabels": ["primary"],
+    "maxMessageCount": 20,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  }
+]

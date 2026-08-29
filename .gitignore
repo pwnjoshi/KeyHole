@@ -1,0 +1,130 @@
+# ==============================================================================
+# KEYHOLE REPOSITORY .GITIGNORE
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Dependencies
+# ------------------------------------------------------------------------------
+node_modules/
+**/node_modules/
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+.npm/
+
+# ------------------------------------------------------------------------------
+# 2. Build Outputs & Generated Artifacts
+# ------------------------------------------------------------------------------
+dist/
+**/dist/
+build/
+**/build/
+build-v2/
+**/build-v2/
+contracts/build/
+contracts/build-v2/
+contracts/dist/
+out/
+**/out/
+*.tsbuildinfo
+.turbo/
+
+# ------------------------------------------------------------------------------
+# 3. Environment Variables, Credentials & Sensitive Tokens
+# ------------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+
+# Gmail & Google OAuth Secrets / Tokens
+credentials.json
+**/credentials.json
+gmail-token.json
+**/gmail-token.json
+token.json
+**/token.json
+client_secret*.json
+
+# Midnight / Blockchain Local Keys & Keystores
+*.keystore
+*.seed
+wallet-secrets.json
+**/wallet-secrets.json
+
+# ------------------------------------------------------------------------------
+# 4. Demo Scripts, Rehearsals & Private Video Deliverables
+# ------------------------------------------------------------------------------
+demo_script/
+**/demo_script/
+demo-script/
+**/demo-script/
+*demo_script*
+*demo-script*
+*DEMO_SCRIPT*
+docs/DEMO_SCRIPT.md
+*.mp4
+*.mov
+*.webm
+*.mkv
+*.avi
+
+# ------------------------------------------------------------------------------
+# 5. Logs & Runtime Debugging
+# ------------------------------------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+logs/
+**/logs/
+
+# ------------------------------------------------------------------------------
+# 6. Operating System & Filesystem Junk
+# ------------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# ------------------------------------------------------------------------------
+# 7. IDE & Editor Artifacts
+# ------------------------------------------------------------------------------
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# ------------------------------------------------------------------------------
+# 8. Testing & Code Coverage
+# ------------------------------------------------------------------------------
+coverage/
+**/coverage/
+.nyc_output/
+*.lcov
+
+# ------------------------------------------------------------------------------
+# 9. Temporary & Cache Directories
+# ------------------------------------------------------------------------------
+tmp/
+temp/
+.temp/
+.cache/
+.eslintcache
+.stylelintcache

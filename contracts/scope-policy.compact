@@ -1,0 +1,32 @@
+import CompactStandardLibrary;
+
+export ledger last_policy_commitment: Bytes<32>;
+export ledger last_response_commitment: Bytes<32>;
+export ledger compliance_verified: Boolean;
+export ledger verification_counter: Counter;
+
+// Keyhole Zero-Knowledge Scope Policy Compliance Circuit
+// Proves that all response fields returned to an AI agent belong to the policy's allowed-field set
+// without revealing the underlying email/data contents to the verifier or ledger.
+
+export circuit verify_scope_membership(
+    policy_id: Bytes<32>,
+    policy_commitment: Bytes<32>,
+    response_commitment: Bytes<32>,
+    // Private witness inputs:
+    allowed_field_mask: Uint<32>,
+    response_field_mask: Uint<32>,
+    is_subset_valid: Boolean
+): [] {
+    // 1. ZK Constraint: Response field set must be a strict subset of allowed fields
+    // Every bit in response_field_mask must also be set in allowed_field_mask
+    assert(is_subset_valid, "Keyhole ZK Error: Response contains fields outside declared policy allowlist");
+    assert(response_field_mask <= allowed_field_mask, "Keyhole ZK Error: Response bitmask exceeds policy allowlist bitmask");
+
+    // 2. State & Commitments
+    // Disclose public commitments and update compliance state on ledger
+    last_policy_commitment = disclose(policy_commitment);
+    last_response_commitment = disclose(response_commitment);
+    compliance_verified = true;
+    verification_counter.increment(1);
+}

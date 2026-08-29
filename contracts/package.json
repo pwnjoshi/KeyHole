@@ -1,0 +1,22 @@
+{
+  "name": "keyhole-contracts",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Midnight Compact smart contracts and zero-knowledge circuit verification for Keyhole",
+  "main": "build/contract/index.js",
+  "types": "build/contract/index.d.ts",
+  "scripts": {
+    "compile": "bash -c '~/.local/bin/compact compile scope-policy.compact build && ~/.local/bin/compact compile scope-policy-v2.compact build-v2'",
+    "build": "npm run compile",
+    "test": "tsx test-contract.ts"
+  },
+  "dependencies": {
+    "@midnight-ntwrk/compact-runtime": "0.19.0",
+    "@noble/hashes": "^1.7.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  }
+}

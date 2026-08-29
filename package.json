@@ -1,0 +1,30 @@
+{
+  "name": "keyhole-monorepo",
+  "version": "1.0.0",
+  "description": "Zero-knowledge policy enforcement gateway for AI agents on Midnight",
+  "private": true,
+  "scripts": {
+    "dev:gateway": "npm run dev --prefix gateway",
+    "dev:dashboard": "npm run dev --prefix dashboard",
+    "dev": "concurrently \"npm run dev:gateway\" \"npm run dev:dashboard\"",
+    "build": "npm run build --prefix contracts && npm run build --prefix gateway && npm run build --prefix dashboard",
+    "build:prod": "npm run build --prefix gateway && npm run build --prefix dashboard",
+    "start": "node gateway/dist/index.js",
+    "compile:contracts": "npm run compile --prefix contracts",
+    "test:contracts": "npm run test --prefix contracts",
+    "test:gateway": "npm run test --prefix gateway",
+    "test": "npm run test:contracts && npm run test:gateway",
+    "demo:agent": "npm run start --prefix agent-demo"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "workspaces": [
+    "gateway",
+    "dashboard",
+    "agent-demo",
+    "contracts"
+  ],
+  "author": "Keyhole Team",
+  "license": "Apache-2.0"
+}

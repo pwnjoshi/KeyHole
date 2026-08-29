@@ -1,0 +1,167 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color-scheme: light;
+    background-color: #f8fafc;
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8fafc;
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    /* Custom sleek precision default cursor */
+    cursor: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.5 3L11.5 20.5L14.2 13.8L21 11L4.5 3Z' fill='%230f172a' stroke='%23ffffff' stroke-width='1.5' stroke-linejoin='round'/%3E%3Ccircle cx='13' cy='12' r='1.5' fill='%236366f1'/%3E%3C/svg%3E") 4 3, default;
+  }
+
+  button, a, select, [role="button"], .cursor-pointer, input[type="range"], input[type="submit"], input[type="button"], input[type="checkbox"] {
+    /* Custom electric indigo pointer cursor on hover */
+    cursor: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4.5 3L11.5 20.5L14.2 13.8L21 11L4.5 3Z' fill='%234f46e5' stroke='%23ffffff' stroke-width='1.5' stroke-linejoin='round'/%3E%3Ccircle cx='13' cy='12' r='2' fill='%23ffffff'/%3E%3C/svg%3E") 4 3, pointer !important;
+  }
+
+  input[type="text"], input[type="email"], input[type="password"], textarea {
+    cursor: text;
+  }
+}
+
+code, pre {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Subtle background grid pattern for enterprise look */
+.bg-grid-pattern {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(226, 232, 240, 0.6) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(226, 232, 240, 0.6) 1px, transparent 1px);
+}
+
+/* Fast, Single-Pass Smooth Page Entrance (No double-firing or laggy delays) */
+@keyframes pageEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-entrance {
+  animation: pageEnter 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Electric Lightning Beam Border around Pill */
+@keyframes lightning-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.lightning-pill-container {
+  position: relative;
+  display: inline-flex;
+  border-radius: 9999px;
+  padding: 1.5px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px -2px rgba(99, 102, 241, 0.2);
+}
+
+.lightning-beam {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 280deg,
+    #6366f1 310deg,
+    #38bdf8 335deg,
+    #ffffff 345deg,
+    #c084fc 355deg,
+    transparent 360deg
+  );
+  animation: lightning-spin 2.5s linear infinite;
+  z-index: 0;
+}
+
+.lightning-pill-inner {
+  position: relative;
+  z-index: 1;
+  background: #ffffff;
+  border-radius: 9999px;
+  padding: 0.35rem 1rem;
+  display: flex;
+  align-items: center;
+}
+
+/* Subtle glow effect for keyhole metaphor */
+.keyhole-glow {
+  box-shadow: 0 0 60px -15px rgba(99, 102, 241, 0.25);
+}
+
+/* Print optimization for official certificate export */
+@media print {
+  html, body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Hide everything except the certificate modal */
+  body > * {
+    visibility: hidden !important;
+  }
+
+  #certificate-print-area, #certificate-print-area * {
+    visibility: visible !important;
+  }
+
+  #certificate-print-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    border: 2px solid #0f172a !important;
+    box-shadow: none !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    z-index: 999999 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
