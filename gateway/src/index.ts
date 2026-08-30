@@ -23,6 +23,7 @@ import { GitHubConnector } from './connectors/github-connector.js';
 import { PostgresConnector } from './connectors/postgres-connector.js';
 import { SalesforceConnector } from './connectors/salesforce-connector.js';
 import { NotionConnector } from './connectors/notion-connector.js';
+import { CustomRestConnector } from './connectors/custom-rest-connector.js';
 import { nangoService } from './nango-service.js';
 
 dotenv.config();
@@ -49,6 +50,7 @@ const githubConnector = new GitHubConnector();
 const postgresConnector = new PostgresConnector();
 const salesforceConnector = new SalesforceConnector();
 const notionConnector = new NotionConnector();
+const customRestConnector = new CustomRestConnector();
 
 policyEngine.registerConnector(gmailConnector);
 policyEngine.registerConnector(gcalConnector);
@@ -58,6 +60,7 @@ policyEngine.registerConnector(githubConnector);
 policyEngine.registerConnector(postgresConnector);
 policyEngine.registerConnector(salesforceConnector);
 policyEngine.registerConnector(notionConnector);
+policyEngine.registerConnector(customRestConnector);
 
 // ==========================================
 // 0. JWT AUTHENTICATION & ACCESS CONTROL
