@@ -207,7 +207,7 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-entrance pb-12">
+    <div className="w-full max-w-4xl mx-auto space-y-6 animate-entrance pb-12">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -585,7 +585,7 @@ tools = shield.get_tools(["gmail", "m365", "slack", "github", "postgres"])`}
                 </div>
                 <div className="flex justify-between">
                   <span>Proving Latency:</span>
-                  <span className="font-bold text-emerald-600">&lt; 12ms (Sub-second)</span>
+                  <span className="font-bold text-emerald-600">~7ms median (Sub-second)</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Network Target:</span>
