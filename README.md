@@ -2,19 +2,22 @@
 
 > *"Your AI agent gets a keyhole, not the whole room — and Midnight proves it never saw more than that."*
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-AWS%20App%20Runner%20(Production)-FF9900?style=for-the-badge&logo=amazon-aws)](https://puvyfpwdq6.us-east-1.awsapprunner.com)
+[![Live Production](https://img.shields.io/badge/Live%20Production-keyhole.techsangi.com.np-6366f1?style=for-the-badge&logo=cloudflare)](https://keyhole.techsangi.com.np)
+[![AWS App Runner](https://img.shields.io/badge/AWS%20App%20Runner-Production%20Cloud-FF9900?style=for-the-badge&logo=amazon-aws)](https://puvyfpwdq6.us-east-1.awsapprunner.com)
 [![Midnight Network](https://img.shields.io/badge/Midnight-Testnet_Preview_(Chain_ID_42)-6366f1.svg)](https://midnight.network)
-[![Hackathon Track](https://img.shields.io/badge/Hackathon-Midnight_AI_%26_Privacy_Track_2026-10b981.svg)](https://devpost.com)
-[![Supabase Database](https://img.shields.io/badge/Database-Supabase_Cloud_PostgreSQL-3ecf8e.svg)](https://supabase.com)
+[![Email Delivery](https://img.shields.io/badge/Email-Resend_OTP_Verified-000000?style=flat&logo=resend)](https://resend.com)
+[![Database](https://img.shields.io/badge/Database-Supabase_Cloud_PostgreSQL-3ecf8e.svg)](https://supabase.com)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-**Keyhole** is a Zero-Knowledge runtime security perimeter and cryptographic scope enforcer for autonomous AI agents. Keyhole intercepts agent tool calls across **8 live enterprise services** (Google Workspace, Microsoft 365, Slack, GitHub, PostgreSQL, Salesforce, Notion), redacts confidential message bodies, credentials, and PII server-side, and generates **sub-second Zero-Knowledge proofs on Midnight** mathematically verifying that the agent never saw data outside its declared scope.
+**Keyhole** is a Zero-Knowledge runtime security perimeter and cryptographic scope enforcer for autonomous AI agents. Keyhole intercepts agent tool calls across **9 enterprise connectors** (Google Workspace, Microsoft 365, Slack, GitHub, PostgreSQL, Salesforce, Notion, Custom REST Webhooks), redacts confidential message bodies, credentials, and PII server-side, and generates **sub-second Zero-Knowledge proofs on Midnight** mathematically verifying that the agent never saw data outside its declared scope.
 
 ---
 
-### 🌐 Live Production Deployment
+### 🌐 Live Production Deployments & Links
 
-* **Live dApp URL**: **[https://puvyfpwdq6.us-east-1.awsapprunner.com](https://puvyfpwdq6.us-east-1.awsapprunner.com)**
+* **Custom Domain**: **[https://keyhole.techsangi.com.np](https://keyhole.techsangi.com.np)**
+* **AWS App Runner URL**: **[https://puvyfpwdq6.us-east-1.awsapprunner.com](https://puvyfpwdq6.us-east-1.awsapprunner.com)**
+* **Interactive Documentation Hub**: **[https://puvyfpwdq6.us-east-1.awsapprunner.com/docs](https://puvyfpwdq6.us-east-1.awsapprunner.com/docs)**
 * **Public GitHub Repository**: **[https://github.com/pwnjoshi/Keyhole](https://github.com/pwnjoshi/Keyhole)**
 * **Target Network**: **Midnight Testnet Preview (Chain ID: 42)**
 * **Live Health Check**: `GET https://puvyfpwdq6.us-east-1.awsapprunner.com/api/health`
@@ -120,7 +123,7 @@ The circuit proves two mathematical statements in zero-knowledge:
 
 ---
 
-## Supported Enterprise Connectors (8 Live Services)
+## Supported Enterprise Connectors (9 Live Services)
 
 | Connector | Permitted In-Scope Fields | Redacted / Masked Fields | Protection Mechanism |
 | :--- | :--- | :--- | :--- |
@@ -132,46 +135,62 @@ The circuit proves two mathematical statements in zero-knowledge:
 | **PostgreSQL SQL Proxy** | `row_id`, `tier`, `status`, `region` | `credit_card`, `salary`, `ssn_tax_id` | Column-Level Regex Mask |
 | **Salesforce CRM** | `lead_id`, `company`, `status`, `created_date` | `deal_value`, `contract_terms`, `notes` | Financial Field Redaction |
 | **Notion & Confluence**| `page_title`, `page_id`, `last_edited_by` | `page_content`, `salary_tables`, `hr_docs` | Database Vault Barrier |
+| **Custom REST / OpenAPI** | `endpoint`, `status_code`, `timestamp`, `service_name` | `authorization_header`, `session_jwt`, `internal_ip` | Header & Payload Masking |
 
 ---
 
-## Embedded Agent SDK & Integration Client
+## Universal 1-Line Drop-in Agent SDK
 
-### Python (`LangChain` & `CrewAI`):
+### Python (`CrewAI`, `LangChain`, `AutoGen`):
 ```python
-import os
+# Install: pip install keyhole-shield crewai langchain
 from keyhole import KeyholeShield
+from crewai import Agent
 
-# Initialize Keyhole shield client
+# 1. Universal 1-Line Drop-in: Auto-shields ALL enterprise tools
+# Policy allowlists are managed centrally in the Keyhole Console (0 agent code edits!)
 shield = KeyholeShield(
-    gateway_url=os.environ.get("KEYHOLE_GATEWAY_URL", "https://puvyfpwdq6.us-east-1.awsapprunner.com"),
-    connection_id="conn_receipts_bot",
-    api_key=os.environ.get("KEYHOLE_API_KEY", "kh_live_xxxxxxxxxxxxxx")
+    gateway_url="https://keyhole.techsangi.com.np",
+    api_key="kh_live_9f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5"
 )
 
-# Intercept and sanitize any external tool query
-safe_data = shield.fetch_data(query="Scan vendor receipts", fields=["sender", "subject", "date"])
-print("Verified Zero-Knowledge Compliance Proof:", safe_data.proof_id)
-print("Delivered Fields (Strictly Masked):", safe_data.fields)
+# 2. Bind auto-routing shielded tools to any autonomous agent
+agent = Agent(
+    role="Autonomous Enterprise Assistant",
+    goal="Audit invoices, triage GitHub PRs, and monitor Slack with 0 data leakage",
+    tools=shield.get_tools(["gmail", "m365", "slack", "github", "postgres"]),
+    verbose=True
+)
+
+# 3. Agent executes with sub-second Midnight ZK proofs anchored automatically!
+result = agent.execute("Scan recent vendor invoices.")
+print("Verified Data:", result.data)
+print("Midnight ZK Proof Tx:", result.proof.midnight_tx_id)
 ```
 
-### TypeScript (`OpenAI` & `Vercel AI SDK`):
+### TypeScript (`OpenAI`, `Vercel AI SDK`):
 ```typescript
-import { KeyholeClient } from './sdk/keyhole-client';
+// Install: npm install @keyhole/sdk openai
+import { KeyholeShield } from '@keyhole/sdk';
+import OpenAI from 'openai';
 
-const keyhole = new KeyholeClient({
-  gatewayUrl: process.env.KEYHOLE_GATEWAY_URL || 'https://puvyfpwdq6.us-east-1.awsapprunner.com',
-  connectionId: 'conn_receipts_bot',
-  apiKey: process.env.KEYHOLE_API_KEY || 'kh_live_xxxxxxxxxxxxxx'
+const openai = new OpenAI();
+
+// 1. Universal 1-Line Drop-in for all enterprise tools
+const shield = new KeyholeShield({
+  gatewayUrl: 'https://keyhole.techsangi.com.np',
+  apiKey: process.env.KEYHOLE_API_KEY
 });
 
-const response = await keyhole.query({
-  prompt: 'Scan recent vendor receipts',
-  requestedFields: ['sender', 'subject', 'date']
-});
+// 2. Automatically load all active enterprise policies into OpenAI / LangChain tools
+const tools = await shield.getTools(); // Auto-discovers Gmail, M365, Slack, GitHub, Postgres
 
-console.log('Midnight Proof ID:', response.proof.proofId);
-console.log('Zero-Knowledge State Root:', response.proof.responseCommitment);
+// 3. AI Agent execution returns cryptographically proven records with 0 leakage
+const response = await openai.chat.completions.create({
+  model: 'gpt-4o',
+  messages: [{ role: 'user', content: 'Scan recent vendor invoices' }],
+  tools
+});
 ```
 
 ---
