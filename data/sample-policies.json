@@ -3,21 +3,112 @@
     "id": "conn_receipts_bot",
     "name": "Expense Report Agent (Receipts Only)",
     "connectorId": "gmail",
-    "description": "Scans inbox for receipts to summarize monthly expenses. Has access only to sender, subject, and date on receipt labels.",
-    "allowedFields": ["sender", "subject", "date"],
-    "allowedLabels": ["INBOX", "RECEIPTS", "CATEGORY_PURCHASES"],
-    "maxMessageCount": 15,
+    "description": "Restricted to financial invoice metadata. Strictly forbidden from reading message body, attachments, or non-receipt threads.",
+    "allowedFields": [
+      "sender",
+      "subject",
+      "date"
+    ],
+    "allowedLabels": [
+      "INBOX",
+      "RECEIPTS",
+      "PURCHASES"
+    ],
+    "maxMessageCount": 10,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_recruiting_screener",
+    "name": "HR Recruiting & Candidate Screener",
+    "connectorId": "gmail",
+    "description": "Scans inbound candidate application emails for sender metadata and dates while cryptographically masking applicant resumes, PII, and salary requirements.",
+    "allowedFields": [
+      "sender",
+      "subject",
+      "date"
+    ],
+    "allowedLabels": [
+      "INBOX",
+      "CAREERS",
+      "RECRUITING"
+    ],
+    "maxMessageCount": 10,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_phishing_scanner",
+    "name": "Security Ops Phishing & Threat Scanner",
+    "connectorId": "gmail",
+    "description": "Analyzes suspicious email sender headers and delivery dates for threat hunting. Confidential executive message bodies and passwords remain masked.",
+    "allowedFields": [
+      "sender",
+      "subject",
+      "date"
+    ],
+    "allowedLabels": [
+      "INBOX",
+      "SPAM",
+      "SECURITY"
+    ],
+    "maxMessageCount": 10,
     "createdAt": "2026-08-28T00:00:00.000Z",
     "status": "active"
   },
   {
     "id": "conn_newsletter_digest",
-    "name": "Weekly Newsletter Digest Bot",
+    "name": "Market Intelligence & Newsletter Digest",
     "connectorId": "gmail",
-    "description": "Compiles a weekly summary of subscribed newsletters. Restricted to sender, subject, date, and snippet.",
-    "allowedFields": ["sender", "subject", "date", "snippet"],
-    "allowedLabels": ["NEWSLETTERS", "CATEGORY_UPDATES"],
+    "description": "Aggregates industry newsletter subjects and dates while keeping private employee correspondence sealed.",
+    "allowedFields": [
+      "sender",
+      "subject",
+      "date"
+    ],
+    "allowedLabels": [
+      "INBOX",
+      "NEWSLETTERS"
+    ],
     "maxMessageCount": 10,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_gmail_support_router",
+    "name": "Customer Support Ticket Dispatcher",
+    "connectorId": "gmail",
+    "description": "Triages inbound customer support requests by sender and subject line. Customer passwords, credit card numbers, and attachments are redacted.",
+    "allowedFields": [
+      "sender",
+      "subject",
+      "date"
+    ],
+    "allowedLabels": [
+      "INBOX",
+      "SUPPORT",
+      "URGENT"
+    ],
+    "maxMessageCount": 15,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_gmail_legal_hold",
+    "name": "Legal Hold & Compliance Discovery Monitor",
+    "connectorId": "gmail",
+    "description": "Maintains zero-knowledge eDiscovery indexing for legal holds without exposing privileged attorney-client message bodies to third-party AI models.",
+    "allowedFields": [
+      "sender",
+      "subject",
+      "date"
+    ],
+    "allowedLabels": [
+      "INBOX",
+      "LEGAL",
+      "COMPLIANCE"
+    ],
+    "maxMessageCount": 20,
     "createdAt": "2026-08-28T00:00:00.000Z",
     "status": "active"
   },
@@ -25,9 +116,371 @@
     "id": "conn_calendar_scheduler",
     "name": "Executive Scheduling Assistant",
     "connectorId": "gcal",
-    "description": "Assists with meeting scheduling. Allowed to see event summary, start time, end time, and attendee count only.",
-    "allowedFields": ["title", "start_time", "end_time", "attendee_count"],
-    "allowedLabels": ["primary"],
+    "description": "Allowed to inspect event titles and times for conflict checking. Description text is redacted server-side.",
+    "allowedFields": [
+      "title",
+      "start_time",
+      "end_time",
+      "attendee_count"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 15,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_calendar_interview_coordinator",
+    "name": "Interview Panel & Room Coordinator",
+    "connectorId": "gcal",
+    "description": "Coordinates technical interview slots across engineering interviewers while shielding candidate evaluation notes and feedback.",
+    "allowedFields": [
+      "title",
+      "start_time",
+      "end_time",
+      "attendee_count"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 12,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_calendar_room_manager",
+    "name": "Facility & Conference Room Optimizer",
+    "connectorId": "gcal",
+    "description": "Monitors corporate board room utilization and occupancy time blocks without exposing confidential executive meeting agendas.",
+    "allowedFields": [
+      "title",
+      "start_time",
+      "end_time"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 20,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_m365_invoices",
+    "name": "Microsoft 365 Enterprise Auditor",
+    "connectorId": "m365",
+    "description": "Inspects enterprise Azure & cloud vendor invoices. Email body text & attachments are cryptographically excluded.",
+    "allowedFields": [
+      "from",
+      "subject",
+      "received_time"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 10,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_m365_teams_notifier",
+    "name": "Teams DevOps Operational Notifier",
+    "connectorId": "m365",
+    "description": "Dispatches operational status alerts to Teams channels. Private executive direct chats and confidential SharePoint links are filtered.",
+    "allowedFields": [
+      "from",
+      "subject",
+      "received_time"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 15,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_m365_compliance_bot",
+    "name": "Microsoft Graph Data Governance Bot",
+    "connectorId": "m365",
+    "description": "Verifies email retention timestamps and sender domains for SOC 2 data governance without accessing unredacted message bodies.",
+    "allowedFields": [
+      "from",
+      "subject",
+      "received_time"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 20,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_slack_triage",
+    "name": "Slack Incident Triage Bot",
+    "connectorId": "slack",
+    "description": "Monitors public channel metadata and timestamps. Executive DMs and private channel threads are masked.",
+    "allowedFields": [
+      "channel_name",
+      "sender_name",
+      "timestamp"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 15,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_slack_support_escalator",
+    "name": "Slack Customer Escalation Monitor",
+    "connectorId": "slack",
+    "description": "Identifies urgent customer issue mentions across designated triage channels while redacting sensitive API keys or passwords shared in chat.",
+    "allowedFields": [
+      "channel_name",
+      "sender_name",
+      "timestamp"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 15,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_slack_announcement_bot",
+    "name": "All-Hands Announcement Broadcaster",
+    "connectorId": "slack",
+    "description": "Delivers corporate-wide operational announcements and sprint summaries with strict zero-knowledge perimeter containment.",
+    "allowedFields": [
+      "channel_name",
+      "sender_name",
+      "timestamp"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 20,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_github_triage",
+    "name": "GitHub Release & Issue Agent",
+    "connectorId": "github",
+    "description": "Triage public issue titles and status flags. Source code blobs, private SSH keys, and secrets are redacted.",
+    "allowedFields": [
+      "repo_name",
+      "issue_title",
+      "author",
+      "state"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 20,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_github_security_alert",
+    "name": "Dependabot & CVE Triage Screener",
+    "connectorId": "github",
+    "description": "Scans vulnerability advisory titles and package names. Proprietary application source files and production infrastructure configs are shielded.",
+    "allowedFields": [
+      "repo_name",
+      "issue_title",
+      "author",
+      "state"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 15,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_github_pr_auditor",
+    "name": "Pull Request Review & CI Auditor",
+    "connectorId": "github",
+    "description": "Inspects PR author, title, and mergeability state while ensuring internal API secrets and private commit signatures are never exfiltrated.",
+    "allowedFields": [
+      "repo_name",
+      "issue_title",
+      "author",
+      "state"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 25,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_postgres_analytics",
+    "name": "PostgreSQL Sanitized Read-Only Bot",
+    "connectorId": "postgres",
+    "description": "Queries customer subscription metrics. Credit cards, salaries, passwords, and PII are masked server-side.",
+    "allowedFields": [
+      "row_id",
+      "customer_tier",
+      "subscription_status",
+      "region"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 25,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_postgres_inventory",
+    "name": "PostgreSQL Supply Chain Inventory Bot",
+    "connectorId": "postgres",
+    "description": "Queries warehouse stock tiers and shipment region status. Sensitive wholesale supplier pricing and billing accounts are redacted.",
+    "allowedFields": [
+      "row_id",
+      "customer_tier",
+      "subscription_status",
+      "region"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 20,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_postgres_audit_inspector",
+    "name": "Database Compliance Audit Inspector",
+    "connectorId": "postgres",
+    "description": "Inspects database table schema health and row synchronization status for SOC 2 audits with zero raw record leakage.",
+    "allowedFields": [
+      "row_id",
+      "subscription_status",
+      "region"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 30,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_salesforce_crm",
+    "name": "Salesforce Enterprise Lead Intelligence",
+    "connectorId": "salesforce",
+    "description": "Allows revenue operations agents to check lead statuses while masking financial deal terms and SSN/Tax IDs.",
+    "allowedFields": [
+      "lead_id",
+      "company",
+      "status",
+      "created_date"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 20,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_salesforce_churn_predictor",
+    "name": "Customer Success Renewal & Health Screener",
+    "connectorId": "salesforce",
+    "description": "Calculates renewal timeframes and company tiers while redacting executive contact details and private contract clauses.",
+    "allowedFields": [
+      "lead_id",
+      "company",
+      "status",
+      "created_date"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 15,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_salesforce_partner_portal",
+    "name": "Channel Partner Opportunity Router",
+    "connectorId": "salesforce",
+    "description": "Routes partner leads and tracks stage progression with strict zero-knowledge redaction of internal pricing models.",
+    "allowedFields": [
+      "lead_id",
+      "company",
+      "status",
+      "created_date"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 20,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_notion_docs",
+    "name": "Notion & Confluence Internal Knowledge",
+    "connectorId": "notion",
+    "description": "Enterprise internal documentation search. Masks confidential HR & strategy databases.",
+    "allowedFields": [
+      "page_title",
+      "page_id",
+      "last_edited_by"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 20,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_notion_sprint_tracker",
+    "name": "Engineering Roadmap & Sprint Tracker",
+    "connectorId": "notion",
+    "description": "Monitors feature delivery deadlines and ticket owners without disclosing proprietary unreleased feature designs.",
+    "allowedFields": [
+      "page_title",
+      "page_id",
+      "last_edited_by"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 20,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_notion_compliance_wiki",
+    "name": "ISO 27001 Security SOP Explorer",
+    "connectorId": "notion",
+    "description": "Navigates published compliance policies and operational runbooks with mathematical zero-knowledge proof verification.",
+    "allowedFields": [
+      "page_title",
+      "page_id",
+      "last_edited_by"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 15,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_custom_telemetry",
+    "name": "Microservice Telemetry & Health Monitor",
+    "connectorId": "custom_rest",
+    "description": "Monitors microservice endpoint status codes and timestamps. Session authorization tokens and internal IPs are masked.",
+    "allowedFields": [
+      "endpoint",
+      "status_code",
+      "timestamp",
+      "service_name"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 25,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_custom_billing_webhook",
+    "name": "Payment & Billing Webhook Guard",
+    "connectorId": "custom_rest",
+    "description": "Ingests billing webhook transaction codes and timestamps while redacting customer credit card and bank account numbers.",
+    "allowedFields": [
+      "endpoint",
+      "status_code",
+      "timestamp",
+      "service_name"
+    ],
+    "allowedLabels": [],
+    "maxMessageCount": 20,
+    "createdAt": "2026-08-28T00:00:00.000Z",
+    "status": "active"
+  },
+  {
+    "id": "conn_custom_erp_bridge",
+    "name": "ERP Order Fulfillment Sync Bot",
+    "connectorId": "custom_rest",
+    "description": "Syncs enterprise order completion states across microservices with cryptographic least-privilege guarantees.",
+    "allowedFields": [
+      "endpoint",
+      "status_code",
+      "timestamp",
+      "service_name"
+    ],
+    "allowedLabels": [],
     "maxMessageCount": 20,
     "createdAt": "2026-08-28T00:00:00.000Z",
     "status": "active"
