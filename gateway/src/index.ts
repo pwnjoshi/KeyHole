@@ -595,12 +595,28 @@ app.post('/api/agent/run', async (req: Request, res: Response): Promise<void> =>
 
     const clientIp = req.ip || (req.headers['x-forwarded-for'] as string) || '127.0.0.1';
 
+    // Extract semantic search query from prompt
+    let searchQuery = '';
+    if (lowerPrompt.includes('invoice') || lowerPrompt.includes('receipt') || lowerPrompt.includes('billing')) {
+      searchQuery = 'invoice OR receipt OR billing OR payment';
+    } else if (lowerPrompt.includes('applicant') || lowerPrompt.includes('candidate') || lowerPrompt.includes('resume') || lowerPrompt.includes('hiring') || lowerPrompt.includes('job')) {
+      searchQuery = 'applicant OR candidate OR resume OR hiring OR job';
+    } else if (lowerPrompt.includes('security') || lowerPrompt.includes('threat') || lowerPrompt.includes('phish') || lowerPrompt.includes('spam') || lowerPrompt.includes('alert')) {
+      searchQuery = 'security OR alert OR verify OR warning OR threat';
+    } else if (lowerPrompt.includes('newsletter') || lowerPrompt.includes('digest') || lowerPrompt.includes('update')) {
+      searchQuery = 'newsletter OR digest OR updates OR community';
+    } else {
+      const brands = ['sunra', 'evernote', 'google', 'aws', 'amazon', 'github', 'stripe', 'vercel'];
+      const matched = brands.filter(b => lowerPrompt.includes(b));
+      if (matched.length > 0) searchQuery = matched.join(' OR ');
+    }
+
     // Execute via Keyhole Perimeter Engine
     const startTime = Date.now();
     const queryResult = await policyEngine.executeQuery({
       connectionId: targetConnId,
       requestedFields,
-      params: { maxResults: 5 },
+      params: { maxResults: 5, query: searchQuery || undefined },
       clientIp
     });
 
