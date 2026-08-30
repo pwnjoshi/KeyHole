@@ -53,54 +53,53 @@ export const Navigation: React.FC<NavigationProps> = ({
     { to: '/', label: 'Overview' },
     { to: '/sandbox', label: 'Live Sandbox' },
     { to: '/docs', label: 'Docs' },
-    { to: '/about', label: 'About & Architecture' },
     { to: '/circuit', label: 'ZK Circuit' },
+    { to: '/about', label: 'About' },
   ];
 
   const authenticatedNavItems = [
     { to: '/', label: 'Overview' },
     { to: '/dashboard', label: 'Dashboard' },
-    { to: '/studio', label: 'Agent Studio' },
+    { to: '/studio', label: 'Studio' },
     { to: '/console', label: 'Console' },
     { to: '/integrations', label: 'Integrations' },
     { to: '/analytics', label: 'Analytics' },
-    { to: '/circuit', label: 'ZK Circuit' },
+    { to: '/circuit', label: 'Circuit' },
     { to: '/docs', label: 'Docs' },
-    { to: '/about', label: 'About' },
   ];
 
   const navItems = currentUser ? authenticatedNavItems : publicNavItems;
 
   return (
-    <header className="sticky top-2 sm:top-3 z-40 w-full max-w-7xl mx-auto px-3 sm:px-6">
-      <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-card px-3 sm:px-6">
-        <div className="relative flex items-center justify-between h-14 gap-2 sm:gap-4">
+    <header className="sticky top-2 sm:top-3 z-40 w-full max-w-7xl mx-auto px-2 sm:px-4">
+      <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-card px-2.5 sm:px-4">
+        <div className="relative flex items-center justify-between h-14 gap-1.5 sm:gap-3">
           
           {/* Left: Clean Static Brand Logo */}
           <Link 
             to="/"
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center space-x-2 sm:space-x-2.5 cursor-pointer select-none flex-shrink-0 z-10"
+            className="flex items-center space-x-1.5 sm:space-x-2 cursor-pointer select-none flex-shrink-0 z-10"
           >
-            <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center flex-shrink-0 shadow-sm">
-              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-slate-900 flex items-center justify-center flex-shrink-0 shadow-sm">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="8" cy="5.8" r="2.8" fill="#ffffff"/>
                 <path d="M6.6 7.2L5.4 13H10.6L9.4 7.2H6.6Z" fill="#ffffff"/>
                 <circle cx="8" cy="5.8" r="1.1" fill="#4f46e5"/>
               </svg>
             </div>
             <div className="flex items-baseline space-x-1 sm:space-x-1.5">
-              <span className="font-extrabold text-base tracking-tight text-slate-900">
+              <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900">
                 Keyhole
               </span>
-              <span className="text-[9px] sm:text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+              <span className="text-[9px] font-mono text-slate-500 font-bold uppercase tracking-wider bg-slate-100 px-1 py-0.5 rounded border border-slate-200">
                 Midnight
               </span>
             </div>
           </Link>
 
           {/* Center: Desktop Nav Links (Balanced Dynamic Center) */}
-          <nav className="hidden lg:flex items-center justify-center flex-1 mx-3 xl:mx-6 space-x-0.5 xl:space-x-1 text-[12.5px] xl:text-xs font-semibold z-10">
+          <nav className="hidden lg:flex items-center justify-center flex-1 mx-1.5 xl:mx-3 space-x-0.5 text-[11.5px] xl:text-xs font-semibold z-10">
             {navItems.map((item) => {
               const isActive = location.pathname === item.to || (item.to !== '/' && location.pathname.startsWith(item.to));
 
@@ -108,7 +107,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 <NavLink
                   key={item.to}
                   to={item.to}
-                  className="relative px-2.5 xl:px-3.5 py-1.5 rounded-lg whitespace-nowrap text-slate-600 hover:text-slate-900 transition-colors z-10"
+                  className="relative px-2 xl:px-2.5 py-1.5 rounded-lg whitespace-nowrap text-slate-600 hover:text-slate-900 transition-colors z-10"
                 >
                   {isActive && (
                     <motion.div
@@ -128,7 +127,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           </nav>
 
           {/* Right Action Cluster */}
-          <div className="flex items-center space-x-2 sm:space-x-2.5 flex-shrink-0 z-10">
+          <div className="flex items-center space-x-1.5 sm:space-x-2 flex-shrink-0 z-10">
             
             {/* Authenticated User Menu or Sign In Button (Desktop) */}
             <div className="hidden sm:block">
@@ -136,7 +135,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 <div className="relative" ref={userMenuRef}>
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center space-x-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition shadow-subtle min-h-[36px]"
+                    className="flex items-center space-x-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition shadow-subtle min-h-[34px]"
                   >
                     <User className="w-3.5 h-3.5 text-indigo-600" />
                     <span className="font-medium">{currentUser.name}</span>
