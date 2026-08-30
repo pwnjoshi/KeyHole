@@ -105,7 +105,6 @@ export const JudgeGuidedTour: React.FC = () => {
           }}
           className="group px-4 py-2.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xl border border-indigo-500/30 transition-all flex items-center space-x-2.5 hover:scale-105"
         >
-          <span className="h-2 w-2 rounded-full bg-indigo-400 inline-block" />
           <Compass className="w-4 h-4 text-indigo-400 group-hover:rotate-45 transition-transform" />
           <span>Judge Guided Tour (90s)</span>
           <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
