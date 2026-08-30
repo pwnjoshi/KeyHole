@@ -216,7 +216,7 @@ export const HeroShowcase: React.FC = () => {
             transform: `translateY(${scrollProgress * -10}px)`,
             transition: 'opacity 0.15s ease-out, transform 0.15s ease-out'
           }}
-          className="inline-block"
+          className="inline-block animate-hero-badge"
         >
           <div className="lightning-pill-container shadow-sm hover:shadow-indigo-500/20 transition-all duration-300">
             <div className="lightning-beam" />
@@ -235,7 +235,7 @@ export const HeroShowcase: React.FC = () => {
             opacity: titleOpacity,
             transition: 'transform 0.08s ease-out, opacity 0.1s ease-out'
           }}
-          className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15] will-change-transform"
+          className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15] will-change-transform animate-hero-title"
         >
           Your AI agent gets a{' '}
           <span className="relative inline-block text-indigo-600">
@@ -259,7 +259,7 @@ export const HeroShowcase: React.FC = () => {
             pointerEvents: subElementsOpacity > 0.1 ? 'auto' : 'none',
             transition: 'opacity 0.15s ease-out, transform 0.15s ease-out'
           }}
-          className="space-y-4 sm:space-y-6 pt-1 will-change-transform"
+          className="space-y-4 sm:space-y-6 pt-1 will-change-transform animate-hero-sub"
         >
           <p className="text-sm sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed px-2">
             Keyhole enforces a mathematical zero-knowledge perimeter on autonomous AI agents across{' '}
@@ -294,7 +294,7 @@ export const HeroShowcase: React.FC = () => {
           boxShadow: visualizerShadow,
           transition: 'transform 0.1s ease-out, box-shadow 0.15s ease-out'
         }}
-        className="relative z-10 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl p-5 sm:p-8 shadow-card hover:shadow-card-hover space-y-6 transition-all duration-300 mt-6 sm:mt-8 will-change-transform"
+        className="relative z-10 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl p-5 sm:p-8 shadow-card hover:shadow-card-hover space-y-6 transition-all duration-300 mt-6 sm:mt-8 will-change-transform animate-hero-visualizer"
       >
         {/* Top Controls: Service Switcher & Aperture Slider */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100">

@@ -62,6 +62,45 @@ code, pre {
   animation: pageEnter 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Staggered Landing Page Smooth Entrance Animations */
+@keyframes heroEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes heroFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-hero-badge {
+  animation: heroFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+}
+
+.animate-hero-title {
+  animation: heroEntrance 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+}
+
+.animate-hero-sub {
+  animation: heroFadeUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+}
+
+.animate-hero-visualizer {
+  animation: heroFadeUp 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.32s both;
+}
+
 /* Electric Lightning Beam Border around Pill */
 @keyframes lightning-spin {
   0% {
