@@ -249,6 +249,7 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
                 onChange={(e) => setSelectedConnectionId(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-indigo-500 transition"
               >
+                <option value="auto">✨ Auto-Intent Smart Routing (Auto-Detect Policy)</option>
                 {policies.map(p => (
                   <option key={p.id} value={p.id}>{p.name} ({p.connectorId})</option>
                 ))}
