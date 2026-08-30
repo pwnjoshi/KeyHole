@@ -261,14 +261,6 @@ export const HeroShowcase: React.FC = () => {
               <HugePlayIcon size={16} />
               <span>Launch AI Agent Studio</span>
             </button>
-
-            <button
-              onClick={() => navigate('/integrations')}
-              className="w-full sm:w-auto px-6 py-3.5 sm:py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs border border-slate-800 flex items-center justify-center space-x-2 transition shadow-sm hover:-translate-y-0.5 min-h-[44px]"
-            >
-              <Zap className="w-4 h-4 text-indigo-400" />
-              <span>1-Click Integrations (8 Ready)</span>
-            </button>
             
             <button
               onClick={() => navigate('/about')}
