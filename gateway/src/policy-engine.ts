@@ -19,6 +19,8 @@ export interface AgentQueryResponse {
   recordCount: number;
   data: RawRecord[];
   records?: RawRecord[];
+  isLiveSource?: boolean;
+  dataSource?: 'live_oauth' | 'sandbox_dataset';
   proof: ProofResult;
   timestamp: string;
 }
@@ -217,6 +219,8 @@ export class PolicyEngine {
       clientIp: req.clientIp
     });
 
+    const isLiveSource = connector && typeof (connector as any).isConfigured === 'function' ? (connector as any).isConfigured() : false;
+
     return {
       success: true,
       requestId,
@@ -226,6 +230,8 @@ export class PolicyEngine {
       recordCount: filteredRecords.length,
       data: filteredRecords,
       records: filteredRecords,
+      isLiveSource,
+      dataSource: isLiveSource ? 'live_oauth' : 'sandbox_dataset',
       proof,
       timestamp: new Date().toISOString()
     };

@@ -469,6 +469,32 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
                       </div>
                     )}
 
+                    {/* Data Source Transparency Banner */}
+                    {executionResult.isLiveSource ? (
+                      <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center justify-between font-mono">
+                        <div className="flex items-center space-x-1.5 font-bold">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          <span>Data Source: LIVE CONNECTED ACCOUNT (Real Google/SaaS API)</span>
+                        </div>
+                        <span className="text-[10px] text-emerald-700 font-sans">Live OAuth Active</span>
+                      </div>
+                    ) : (
+                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="flex items-center space-x-1.5 font-mono text-[11px]">
+                          <span className="w-2 h-2 rounded-full bg-amber-500" />
+                          <span className="font-bold text-slate-700">Data Source: Sandbox Evaluation Dataset</span>
+                          <span className="text-slate-400 font-sans">(Live OAuth not configured)</span>
+                        </div>
+                        <button
+                          onClick={() => navigate('/integrations')}
+                          className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold border border-indigo-200 transition flex items-center space-x-1 self-start sm:self-auto"
+                        >
+                          <span>Connect Live Account in Hub</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
+
                     {/* Agent Thought Trace */}
                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-[11px] text-slate-700 space-y-1">
                       <span className="text-[10px] text-slate-400 uppercase font-sans font-bold block">Agent Internal Thought:</span>

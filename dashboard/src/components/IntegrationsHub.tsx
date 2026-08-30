@@ -673,6 +673,19 @@ export const IntegrationsHub: React.FC = () => {
         </div>
       </div>
 
+      {/* Mode Notice Banner */}
+      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="flex items-start space-x-2.5">
+          <Info className="w-4 h-4 text-indigo-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold text-slate-900 block">Live Credentials vs. Sandbox Simulation Mode</span>
+            <p className="text-slate-600 mt-0.5">
+              Services marked <span className="font-bold text-slate-700">"NOT CONFIGURED"</span> run on verified sandbox simulation datasets so you can evaluate Midnight Zero-Knowledge proving without sharing production API keys. Click <span className="font-bold text-indigo-600">"Configure"</span> on any service to connect your live OAuth credentials.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 sm:pb-0">
@@ -759,7 +772,7 @@ export const IntegrationsHub: React.FC = () => {
                         ? isLive
                           ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                           : 'bg-indigo-100 text-indigo-800 border border-indigo-200'
-                        : 'bg-slate-100 text-slate-600 border border-slate-200'
+                        : 'bg-slate-100 text-slate-500 border border-slate-200'
                     }`}
                   >
                     {isConnected ? (
@@ -768,7 +781,7 @@ export const IntegrationsHub: React.FC = () => {
                         <span>{isLive ? 'LIVE API' : 'SANDBOX'}</span>
                       </>
                     ) : (
-                      <span>READY</span>
+                      <span>NOT CONFIGURED</span>
                     )}
                   </span>
                 </div>
