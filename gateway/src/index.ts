@@ -1070,10 +1070,17 @@ app.post('/api/agent/run', async (req: Request, res: Response): Promise<void> =>
     const isPolicyViolation = err.statusCode === 403;
     const isNotConnected = err.message && err.message.toLowerCase().includes('not connected');
 
+    const targetConnId = (req.body?.connectionId && req.body.connectionId !== 'auto') ? req.body.connectionId : 'conn_receipts_bot';
+    const policy = policyStore.get(targetConnId) || policyStore.get('conn_receipts_bot');
+    const connector = policy ? policyEngine.getConnector(policy.connectorId) : undefined;
+    const isLive = connector && typeof (connector as any).isConfigured === 'function' ? (connector as any).isConfigured() : false;
+
     if (isHoneypot) {
       res.status(423).json({
         success: false,
         status: 'HONEYPOT_TRAP',
+        isLiveSource: isLive,
+        dataSource: isLive ? 'live_oauth' : 'sandbox_dataset',
         error: err.message,
         unauthorizedFields: err.unauthorizedFields || ['canary_token_trap'],
         agentThought: '🚨 MY SESSION HAS BEEN LOCKED. I attempted to touch an active Keyhole Honeypot Canary variable.',
@@ -1086,6 +1093,8 @@ app.post('/api/agent/run', async (req: Request, res: Response): Promise<void> =>
       res.status(400).json({
         success: false,
         status: 'NOT_CONNECTED',
+        isLiveSource: false,
+        dataSource: 'sandbox_dataset',
         error: err.message,
         agentThought: 'I attempted to execute the data query, but the target Google Workspace account is not authenticated.',
         agentResponse: `[Google Workspace Not Connected]\n${err.message}\n\nPlease visit the Integrations Hub to connect your Google account.`
@@ -1096,6 +1105,8 @@ app.post('/api/agent/run', async (req: Request, res: Response): Promise<void> =>
     res.status(err.statusCode || 500).json({
       success: false,
       status: isPolicyViolation ? 'BLOCKED' : 'ERROR',
+      isLiveSource: isLive,
+      dataSource: isLive ? 'live_oauth' : 'sandbox_dataset',
       error: err.message,
       unauthorizedFields: err.unauthorizedFields || undefined,
       agentThought: isPolicyViolation

@@ -503,10 +503,10 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
                     {executionResult.isLiveSource ? (
                       <div className="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center justify-between font-semibold">
                         <div className="flex items-center space-x-1.5">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>Live Connected Account</span>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                          <span>Live Account Connected · {executionResult.status === 'BLOCKED' ? 'Perimeter Blocked Scope Breach' : 'Google API Active'}</span>
                         </div>
-                        <span className="text-[10px] font-mono text-emerald-700 uppercase font-bold">Google API Active</span>
+                        <span className="text-[10px] font-mono text-emerald-700 uppercase font-bold">Protected</span>
                       </div>
                     ) : (
                       <div className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs flex items-center justify-between">
@@ -515,13 +515,15 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
                           <span className="font-semibold text-slate-800">Sandbox Dataset</span>
                           <span className="text-[11px] text-slate-400 hidden sm:inline">(Live OAuth unconfigured)</span>
                         </div>
-                        <button
-                          onClick={() => navigate('/integrations')}
-                          className="text-indigo-600 hover:text-indigo-700 font-semibold text-xs flex items-center space-x-1"
-                        >
-                          <span>Connect Account</span>
-                          <ArrowRight className="w-3 h-3" />
-                        </button>
+                        {executionResult.status !== 'BLOCKED' && executionResult.status !== 'HONEYPOT_TRAP' && (
+                          <button
+                            onClick={() => navigate('/integrations')}
+                            className="text-indigo-600 hover:text-indigo-700 font-semibold text-xs flex items-center space-x-1"
+                          >
+                            <span>Connect Account</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
+                        )}
                       </div>
                     )}
 
