@@ -34,10 +34,10 @@ export const ProofModal: React.FC<ProofModalProps> = ({ event, proof, onClose })
     >
       <div 
         onClick={(e) => e.stopPropagation()}
-        className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto z-[101]"
+        className="bg-white border border-slate-200 rounded-3xl max-w-xl w-full shadow-2xl max-h-[90vh] flex flex-col overflow-hidden z-[101] animate-in zoom-in-95 duration-150"
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div className="flex items-center justify-between p-6 sm:px-8 sm:py-5 border-b border-slate-100 flex-shrink-0 bg-white">
           <div className="flex items-center space-x-2.5">
             <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
               <HugeCpuIcon size={20} className="text-indigo-600" />
@@ -50,11 +50,14 @@ export const ProofModal: React.FC<ProofModalProps> = ({ event, proof, onClose })
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition"
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Scrollable Content Body */}
+        <div className="p-6 sm:p-8 overflow-y-auto space-y-6 flex-grow">
 
         {/* Verification Status */}
         <div className={`p-4 rounded-2xl border flex items-center justify-between ${
@@ -161,6 +164,7 @@ export const ProofModal: React.FC<ProofModalProps> = ({ event, proof, onClose })
             onClose={() => setShowExplorer(false)}
           />
         )}
+        </div>
       </div>
     </div>,
     document.body

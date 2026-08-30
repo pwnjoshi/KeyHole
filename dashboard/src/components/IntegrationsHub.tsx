@@ -853,10 +853,10 @@ export const IntegrationsHub: React.FC = () => {
           >
             <div
               onClick={(e) => e.stopPropagation()}
-              className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto z-[101]"
+              className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full shadow-2xl max-h-[90vh] flex flex-col overflow-hidden z-[101] animate-in zoom-in-95 duration-150"
             >
               {/* Modal Header */}
-              <div className="flex items-start justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-start justify-between p-6 sm:px-8 sm:py-5 border-b border-slate-100 flex-shrink-0 bg-white">
                 <div className="flex items-center space-x-3">
                   <div
                     className={`p-2.5 rounded-xl ${selectedServiceForModal.iconBg} ${selectedServiceForModal.iconColor} border`}
@@ -881,8 +881,10 @@ export const IntegrationsHub: React.FC = () => {
                 </button>
               </div>
 
-              {/* Explanatory Info Card */}
-              <div className="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100 space-y-2 text-xs">
+              {/* Scrollable Content Body */}
+              <div className="p-6 sm:p-8 overflow-y-auto space-y-6 flex-grow">
+                {/* Explanatory Info Card */}
+                <div className="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100 space-y-2 text-xs">
                 <span className="font-bold text-indigo-900 block">
                   Zero-Knowledge Guarantee for {selectedServiceForModal.name}:
                 </span>
@@ -1360,8 +1362,9 @@ export const IntegrationsHub: React.FC = () => {
                 </div>
               )}
 
-              <div className="pt-3 border-t border-slate-100 text-center text-[10px] text-slate-400 font-mono">
-                Credentials are encrypted locally with AES-256 and never shared with AI models.
+                <div className="pt-3 border-t border-slate-100 text-center text-[10px] text-slate-400 font-mono">
+                  Credentials are encrypted locally with AES-256 and never shared with AI models.
+                </div>
               </div>
             </div>
           </div>,

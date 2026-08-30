@@ -94,10 +94,10 @@ curl -X POST https://api.keyhole.sec/api/agent/run \\
     >
       <div 
         onClick={(e) => e.stopPropagation()}
-        className="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[92vh] overflow-y-auto z-[101]"
+        className="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full shadow-2xl max-h-[90vh] flex flex-col overflow-hidden z-[101] animate-in zoom-in-95 duration-150"
       >
         {/* Header */}
-        <div className="flex items-start justify-between pb-4 border-b border-slate-100">
+        <div className="flex items-start justify-between p-6 sm:px-8 sm:py-5 border-b border-slate-100 flex-shrink-0 bg-white">
           <div className="flex items-center space-x-3">
             <div className="p-2.5 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-200">
               <Code className="w-6 h-6" />
@@ -124,6 +124,9 @@ curl -X POST https://api.keyhole.sec/api/agent/run \\
             <X className="w-5 h-5" />
           </button>
         </div>
+
+        {/* Scrollable Content Body */}
+        <div className="p-6 sm:p-8 overflow-y-auto space-y-6 flex-grow">
 
         {/* Language Tabs */}
         <div className="flex items-center justify-between">
@@ -188,6 +191,7 @@ curl -X POST https://api.keyhole.sec/api/agent/run \\
             <span className="font-bold text-slate-900 block">Canary Defense</span>
             <p className="text-slate-600 text-[11px]">Automatic honeypot trap injection for instant prompt injection quarantine.</p>
           </div>
+        </div>
         </div>
       </div>
     </div>,
