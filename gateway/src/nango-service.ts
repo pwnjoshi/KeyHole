@@ -39,6 +39,7 @@ export class NangoService {
       'slack': 'slack',
       'github': 'github-getting-started',
       'microsoft_365': 'microsoft',
+      'm365': 'microsoft',
       'microsoft': 'microsoft',
       'notion': 'notion',
       'salesforce': 'salesforce',
