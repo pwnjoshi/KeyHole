@@ -21,6 +21,7 @@ import { CommandDashboard } from './components/CommandDashboard.tsx';
 import { JudgeDemoSandbox } from './components/JudgeDemoSandbox.tsx';
 import { JudgeGuidedTour } from './components/JudgeGuidedTour.tsx';
 import { DocumentationHub } from './components/DocumentationHub.tsx';
+import { AccountSettings } from './components/AccountSettings.tsx';
 import { ScrollToTop } from './components/ScrollToTop.tsx';
 import { ScopePolicy, AuditEvent, ConnectorInfo, AuthUser } from './types.ts';
 
@@ -393,6 +394,24 @@ function AppContent() {
             element={
               <ProtectedRoute currentUser={currentUser}>
                 <AnalyticsView events={events} isLoading={isLoadingApp} />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 9. Protected: Enterprise Account & Security Settings */}
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute currentUser={currentUser}>
+                <AccountSettings
+                  currentUser={currentUser}
+                  onUpdateUser={(updatedUser) => {
+                    setCurrentUser(updatedUser);
+                    showToast('Profile updated successfully!', 'success');
+                  }}
+                  walletAddress={walletAddress}
+                  onOpenWalletModal={() => setIsWalletModalOpen(true)}
+                />
               </ProtectedRoute>
             }
           />

@@ -98,9 +98,9 @@ export const ConnectedAgents: React.FC<ConnectedAgentsProps> = ({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
-        {/* Service Pills */}
-        <div className="flex items-center space-x-1 overflow-x-auto pb-1 md:pb-0 scrollbar-thin">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-2xs">
+        {/* Service Pills - Natural Wrap, Zero Ugly Scrollbar */}
+        <div className="flex flex-wrap items-center gap-1.5">
           {services.map(svc => {
             const count = svc.id === 'all' 
               ? policies.length 

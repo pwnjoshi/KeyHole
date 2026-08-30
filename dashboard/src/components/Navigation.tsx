@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HugeWalletIcon } from './HugeIcons.tsx';
-import { User, LogOut, ChevronDown, Menu, X, ArrowRight, ShieldCheck, LayoutDashboard } from 'lucide-react';
+import { User, LogOut, ChevronDown, Menu, X, ArrowRight, ShieldCheck, LayoutDashboard, Settings } from 'lucide-react';
 import { AuthUser } from '../types.ts';
 
 interface NavigationProps {
@@ -161,6 +161,15 @@ export const Navigation: React.FC<NavigationProps> = ({
                         <span>Command Dashboard</span>
                       </Link>
 
+                      <Link
+                        to="/settings"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="w-full flex items-center space-x-2 px-2.5 py-2 rounded-lg text-slate-700 hover:bg-slate-50 transition font-medium"
+                      >
+                        <Settings className="w-3.5 h-3.5 text-indigo-600" />
+                        <span>Account Settings</span>
+                      </Link>
+
                       <button
                         onClick={() => {
                           setUserMenuOpen(false);
@@ -254,20 +263,30 @@ export const Navigation: React.FC<NavigationProps> = ({
               <div className="pt-2 border-t border-slate-100 flex flex-col gap-2">
                 {currentUser ? (
                   <>
-                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs flex items-center justify-between">
-                      <div>
-                        <p className="font-bold text-slate-900">{currentUser.name}</p>
-                        <p className="text-[10px] text-slate-500 font-mono">{currentUser.email}</p>
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-bold text-slate-900">{currentUser.name}</p>
+                          <p className="text-[10px] text-slate-500 font-mono">{currentUser.email}</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setMobileMenuOpen(false);
+                            onLogout();
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg bg-rose-50 text-rose-700 text-xs font-semibold hover:bg-rose-100 transition"
+                        >
+                          Sign Out
+                        </button>
                       </div>
-                      <button
-                        onClick={() => {
-                          setMobileMenuOpen(false);
-                          onLogout();
-                        }}
-                        className="px-2.5 py-1.5 rounded-lg bg-rose-50 text-rose-700 text-xs font-semibold hover:bg-rose-100 transition"
+                      <Link
+                        to="/settings"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center space-x-1.5 text-xs text-indigo-600 font-bold hover:underline pt-1 border-t border-slate-200/60"
                       >
-                        Sign Out
-                      </button>
+                        <Settings className="w-3.5 h-3.5" />
+                        <span>Account &amp; Security Settings</span>
+                      </Link>
                     </div>
 
                     <button
