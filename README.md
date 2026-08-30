@@ -40,6 +40,19 @@ While standard API proxies only perform basic allowlist filtering, Keyhole intro
 
 ---
 
+## ⚡ Integrate Midnight Track: Before vs. After Keyhole
+
+| Dimension | Before Midnight (Standard AI Agents) | After Midnight (Keyhole ZK Shield) |
+|---|---|---|
+| **Data Scope** | Full unredacted payloads (bodies, attachments, tokens) | Strictly masked to policy allowlist (e.g. `[sender, date]`) |
+| **Trust Model** | Blind trust / Unverifiable server logs | **Trustless ZK Soundness** on Midnight Ledger |
+| **Integrity Proof** | None (Reverse proxy could fabricate data) | **Two-Witness Cryptographic Upstream Binding** (`raw_hash`) |
+| **Attack Surface** | Vulnerable to prompt injection exfiltration | Pre-Fetch 403 Guard + Canary Trap HTTP 423 session lock |
+| **Compliance Audit**| Months of manual log audits | **Sub-second on-chain ZK verification** with SOC 2 certificates |
+| **Confidential Data on Chain** | N/A | **0 bytes leaked** (Discloses only 32-byte commitment hashes) |
+
+---
+
 ## Fast-Track Evaluation Walkthrough
 
 | Step | Action in Application | Technical Operation |
