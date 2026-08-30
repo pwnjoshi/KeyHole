@@ -634,28 +634,79 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
                 )}
 
                 {!isSwarmRunning && swarmResults.length > 0 && (
-                  <div className="space-y-2">
-                    {swarmResults.map((agent, idx) => (
-                      <div key={idx} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-1.5 font-bold text-slate-900 text-[11px]">
-                            <HugeBotIcon size={14} className="text-indigo-600" />
-                            <span>{agent.name}</span>
+                  <div className="space-y-3">
+                    {swarmResults.map((agent, idx) => {
+                      const isBlocked = agent.result?.status === 'BLOCKED' || !agent.result?.success;
+                      return (
+                        <div
+                          key={idx}
+                          className={`p-3.5 rounded-2xl border transition-all ${
+                            isBlocked
+                              ? 'bg-rose-50/70 border-rose-200 ring-1 ring-rose-300/50'
+                              : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                          } space-y-2`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <div className={`p-1.5 rounded-lg ${isBlocked ? 'bg-rose-100 text-rose-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                                <HugeBotIcon size={14} />
+                              </div>
+                              <div>
+                                <span className="font-bold text-slate-900 text-xs block">{agent.name}</span>
+                                <span className="text-[10px] text-slate-500">{agent.role}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-1.5">
+                              <span
+                                className={`px-2 py-0.5 rounded-full font-mono text-[9px] font-bold uppercase ${
+                                  isBlocked
+                                    ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                                    : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                }`}
+                              >
+                                {isBlocked ? 'BLOCKED (403)' : 'COMPLIANT (ZK PROVED)'}
+                              </span>
+                            </div>
                           </div>
-                          <span className={`px-2 py-0.5 rounded-full font-mono text-[9px] font-bold ${
-                            agent.result?.status === 'COMPLIANT'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-rose-100 text-rose-800'
-                          }`}>
-                            {agent.result?.status || 'COMPLIANT'}
-                          </span>
+
+                          {/* Response Body Text Container */}
+                          <div className="p-2.5 rounded-xl bg-slate-950 text-slate-200 font-mono text-[11px] leading-relaxed break-words">
+                            {isBlocked ? (
+                              <div className="space-y-1 text-rose-300">
+                                <span className="font-bold text-rose-400 block">
+                                  🛡️ Keyhole 403 Forbidden — Perimeter Barrier Active
+                                </span>
+                                <p className="text-[10px] text-slate-300">
+                                  {agent.result?.error || agent.result?.agentResponse || 'Quarantined unauthorized payload access.'}
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="space-y-1 text-slate-300 text-[10px]">
+                                <span className="text-emerald-400 font-bold block">✓ Permitted Clean Payload:</span>
+                                <p className="line-clamp-3 text-slate-200">
+                                  {agent.result?.agentResponse || 'Query sanitized and verified.'}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Bottom Action / Proof Drawer */}
+                          <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 pt-0.5">
+                            <span>Prompt: "{agent.prompt}"</span>
+                            {agent.result?.proof && (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedProof(agent.result.proof)}
+                                className="text-indigo-600 hover:text-indigo-800 font-bold hover:underline flex items-center gap-1"
+                              >
+                                <HugeShieldCheckIcon size={12} className="text-emerald-600" />
+                                <span>Inspect ZK Proof</span>
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        <p className="text-[10px] text-slate-500">{agent.role}</p>
-                        <div className="p-1.5 rounded-lg bg-slate-900 text-slate-200 font-mono text-[10px] truncate">
-                          {agent.result?.agentResponse?.substring(0, 120)}...
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
