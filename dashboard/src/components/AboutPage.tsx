@@ -245,6 +245,83 @@ export circuit verify_scope_membership(
         </div>
       </div>
 
+      {/* 5. Production Personas & SDK Integration Workflow */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-card hover:shadow-card-hover transition-all duration-200 space-y-8 animate-entrance">
+        <div className="flex items-center space-x-3 pb-4 border-b border-slate-100">
+          <div className="p-2 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-600">
+            <Code className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">How Keyhole Works in Practice</h2>
+            <p className="text-xs text-slate-500">Developer SDK integration vs. Executive compliance console</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Persona 1: AI Developer SDK */}
+          <div className="p-6 rounded-2xl bg-slate-900 text-white space-y-4 shadow-xl border border-slate-800">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-500/30 text-indigo-300 border border-indigo-500/40">
+                  FOR DEVELOPERS
+                </span>
+                <span className="text-xs font-semibold text-slate-200">3-Line SDK Integration</span>
+              </div>
+              <span className="text-[10px] font-mono text-emerald-400 font-bold">Python / TS</span>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Developers do not manually configure complex policies. They install the Keyhole SDK in their LangChain, CrewAI, or AutoGPT agents. All external queries automatically route through the zero-knowledge perimeter.
+            </p>
+
+            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 font-mono text-[11px] text-slate-200 overflow-x-auto">
+              <pre>{`from keyhole import Keyhole
+
+# 1. Initialize with your company gateway
+kh = Keyhole(api_key="kh_live_sec_token")
+
+# 2. Query Gmail with Auto-Assigned Least Privilege
+emails = kh.gmail.fetch(query="invoices", auto_policy=True)
+
+# 3. Agent receives strictly [sender, subject, date]
+# Midnight ZK Proof generated automatically in background!`}</pre>
+            </div>
+          </div>
+
+          {/* Persona 2: Business & Security Admin */}
+          <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  FOR CISOS &amp; BUSINESS
+                </span>
+                <span className="text-xs font-bold text-slate-900">Zero-Trust Management Console</span>
+              </div>
+              <span className="text-[10px] font-mono text-slate-500 font-bold">Live Dashboard</span>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Business owners and security teams use the Web Console to verify that autonomous agents never access confidential emails or database columns.
+            </p>
+
+            <div className="space-y-2.5 text-xs text-slate-700">
+              <div className="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center space-x-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <span><strong>Dynamic Intent Auto-Routing:</strong> Agents are auto-assigned matching least-privilege scopes based on query context.</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center space-x-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <span><strong>Midnight Privacy Proofs:</strong> View mathematical verification that prompt injections were quarantined.</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center space-x-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                <span><strong>1-Click Nango Integrations:</strong> Connect corporate Gmail, Slack, and Salesforce in seconds without GCP setup.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 };
