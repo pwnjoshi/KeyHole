@@ -202,7 +202,7 @@ export const IntegrationsHub: React.FC = () => {
 
   const [googleConnectMode, setGoogleConnectMode] = useState<'nango' | 'service_account' | 'cli_custom'>('nango');
   const [serviceAccountJsonInput, setServiceAccountJsonInput] = useState('');
-  const [delegatedEmailInput, setDelegatedEmailInput] = useState('joshipawan2021@gmail.com');
+  const [delegatedEmailInput, setDelegatedEmailInput] = useState('');
   const [isConnectingNango, setIsConnectingNango] = useState(false);
   const [isSavingServiceAccount, setIsSavingServiceAccount] = useState(false);
 
@@ -290,14 +290,19 @@ export const IntegrationsHub: React.FC = () => {
   };
 
   const handleDisconnectAll = async () => {
-    const list = ['m365', 'slack', 'github', 'postgres', 'salesforce', 'notion'];
+    try {
+      await handleDisconnectGoogle();
+    } catch {}
+    const list = ['m365', 'slack', 'github', 'postgres', 'salesforce', 'notion', 'custom_rest'];
     for (const id of list) {
       try {
         await fetch(`/api/connectors/${id}/disconnect`, { method: 'POST' });
       } catch {}
     }
     setConnectedServices({});
+    setGoogleStatus({ connected: false });
     localStorage.removeItem('keyhole_connected_services');
+    await fetchStatus();
     showSuccess('Disconnected all integrations. All services reset to unconfigured state.');
   };
 
@@ -452,12 +457,21 @@ export const IntegrationsHub: React.FC = () => {
     setIsConnectingNango(true);
     setErrorMessage(null);
     try {
+      let userEmail = localStorage.getItem('keyhole_user_email') || 'workspace-user@enterprise.corp';
+      const jwtToken = localStorage.getItem('keyhole-jwt');
+      if (jwtToken) {
+        try {
+          const payload = JSON.parse(atob(jwtToken.split('.')[1]));
+          if (payload.email) userEmail = payload.email;
+        } catch {}
+      }
+
       const res = await fetch('/api/nango/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: 'joshipawan2021@gmail.com',
-          name: 'Pawan Joshi',
+          email: userEmail,
+          name: userEmail.split('@')[0],
           integrationKey: serviceId
         })
       });
@@ -478,15 +492,9 @@ export const IntegrationsHub: React.FC = () => {
             try {
               const syncRes = await fetch('/api/nango/sync', { method: 'POST' });
               await syncRes.json();
-              fetchStatus();
-              const updated = {
-                ...connectedServices,
-                [serviceId]: { connected: true, identifier: 'Connected via Nango', isLive: true }
-              };
-              setConnectedServices(updated);
-              localStorage.setItem('keyhole_connected_services', JSON.stringify(updated));
+              await fetchStatus();
               setSelectedServiceForModal(null);
-              showSuccess(`Successfully connected via Nango 1-Click!`);
+              showSuccess(`Successfully connected and synchronized via Nango!`);
             } catch {}
             setIsConnectingNango(false);
           }
@@ -563,7 +571,12 @@ export const IntegrationsHub: React.FC = () => {
     return matchesCategory && matchesSearch;
   });
 
-  const totalConnectedCount = Object.keys(connectedServices).filter(k => connectedServices[k]?.connected).length + (googleStatus.connected && !connectedServices.google_workspace ? 1 : 0);
+  const totalConnectedCount = services.filter((s) => {
+    if (s.id === 'google_workspace') {
+      return !!(googleStatus.connected || connectedServices.google_workspace?.connected);
+    }
+    return !!connectedServices[s.id]?.connected;
+  }).length;
 
   return (
     <div className="space-y-8 animate-entrance">
@@ -902,14 +915,11 @@ export const IntegrationsHub: React.FC = () => {
                     {/* Connect Button */}
                     <button
                       type="button"
-                      onClick={() => handleConnectDemoGoogle('joshipawan2021@gmail.com')}
+                      onClick={() => handleConnectDemoGoogle('sandbox-demo@enterprise.corp')}
                       className="group relative w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:via-teal-500 hover:to-emerald-600 text-white font-medium text-xs transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2 active:scale-[0.99]"
                     >
                       <Sparkles className="w-4 h-4 flex-shrink-0 text-emerald-200 group-hover:rotate-12 transition-transform duration-300" />
                       <span className="font-semibold text-xs tracking-tight">Connect Sandbox Demo Workspace</span>
-                      <span className="opacity-80 font-mono text-[10px] bg-emerald-800/40 px-1.5 py-0.5 rounded border border-emerald-400/30 hidden sm:inline">
-                        joshipawan2021@gmail.com
-                      </span>
                       <ArrowRight className="w-3.5 h-3.5 opacity-70 group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
                     </button>
                   </div>
@@ -924,35 +934,38 @@ export const IntegrationsHub: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setGoogleConnectMode('nango')}
-                        className={`py-2 px-2 text-[11px] font-bold rounded-lg transition text-center ${
+                        className={`py-2 px-2 text-[11px] font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
                           googleConnectMode === 'nango'
                             ? 'bg-white text-indigo-700 shadow-xs'
                             : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
-                        ⚡ 1-Click Nango
+                        <Zap className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
+                        <span>1-Click Nango</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => setGoogleConnectMode('service_account')}
-                        className={`py-2 px-2 text-[11px] font-bold rounded-lg transition text-center ${
+                        className={`py-2 px-2 text-[11px] font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
                           googleConnectMode === 'service_account'
                             ? 'bg-white text-indigo-700 shadow-xs'
                             : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
-                        🏢 Service Account
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                        <span>Service Account</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => setGoogleConnectMode('cli_custom')}
-                        className={`py-2 px-2 text-[11px] font-bold rounded-lg transition text-center ${
+                        className={`py-2 px-2 text-[11px] font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
                           googleConnectMode === 'cli_custom'
                             ? 'bg-white text-indigo-700 shadow-xs'
                             : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
-                        💻 CLI / Custom Keys
+                        <Terminal className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
+                        <span>CLI / Custom</span>
                       </button>
                     </div>
                   </div>

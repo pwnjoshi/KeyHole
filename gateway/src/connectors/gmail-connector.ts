@@ -40,7 +40,7 @@ export class GmailConnector implements DataConnector {
   }
 
   public getConnectedEmail(): string {
-    return this.connectedAccountEmail || 'sandbox-demo@enterprise.corp';
+    return this.connectedAccountEmail || (this.isConfigured() ? 'live-user@enterprise.corp' : 'sandbox-demo@enterprise.corp');
   }
 
   public getAuthType(): string {
@@ -112,12 +112,41 @@ export class GmailConnector implements DataConnector {
 
   /**
    * Direct 1-Click Connection via Nango Unified Integration
+   * Queries Google API directly to fetch the REAL authenticated user email
    */
-  public setNangoCredentials(accessToken: string, email?: string) {
+  public async setNangoCredentials(accessToken: string, email?: string): Promise<string> {
     this.oauth2Client = new google.auth.OAuth2();
     this.oauth2Client.setCredentials({ access_token: accessToken });
-    this.connectedAccountEmail = email || 'nango-connected@enterprise.corp';
+
+    let realEmail = email || '';
+    try {
+      const oauth2 = google.oauth2({ version: 'v2', auth: this.oauth2Client });
+      const userInfo = await oauth2.userinfo.get();
+      if (userInfo.data.email) {
+        realEmail = userInfo.data.email;
+      }
+    } catch {
+      try {
+        const gmail = google.gmail({ version: 'v1', auth: this.oauth2Client });
+        const profile = await gmail.users.getProfile({ userId: 'me' });
+        if (profile.data.emailAddress) {
+          realEmail = profile.data.emailAddress;
+        }
+      } catch {}
+    }
+
+    this.connectedAccountEmail = realEmail || 'connected-user@company.corp';
     this.authType = 'nango';
+
+    const configDir = path.resolve(process.cwd(), 'config');
+    if (!fs.existsSync(configDir)) fs.mkdirSync(configDir, { recursive: true });
+    fs.writeFileSync(this.tokenPath, JSON.stringify({
+      access_token: accessToken,
+      account_email: this.connectedAccountEmail,
+      auth_type: 'nango'
+    }, null, 2), 'utf8');
+
+    return this.connectedAccountEmail;
   }
 
   public hasValidClientCredentials(): boolean {

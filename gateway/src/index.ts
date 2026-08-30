@@ -283,7 +283,7 @@ app.post('/api/nango/sync', async (req: Request, res: Response): Promise<void> =
       if (conn.provider === 'google-mail' || conn.provider === 'google' || conn.provider_config_key.includes('google')) {
         const tokenData = await nangoService.getConnectionToken(conn.connection_id, conn.provider_config_key);
         if (tokenData?.credentials?.access_token) {
-          gmailConnector.setNangoCredentials(tokenData.credentials.access_token, conn.end_user?.email);
+          await gmailConnector.setNangoCredentials(tokenData.credentials.access_token, conn.end_user?.email);
           syncedCount++;
         }
       }
