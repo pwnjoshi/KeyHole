@@ -58,6 +58,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   ];
 
   const authenticatedNavItems = [
+    { to: '/', label: 'Overview' },
     { to: '/dashboard', label: 'Dashboard' },
     { to: '/studio', label: 'Agent Studio' },
     { to: '/console', label: 'Console' },
@@ -77,7 +78,7 @@ export const Navigation: React.FC<NavigationProps> = ({
           
           {/* Left: Clean Static Brand Logo */}
           <Link 
-            to={currentUser ? "/dashboard" : "/"}
+            to="/"
             onClick={() => setMobileMenuOpen(false)}
             className="flex items-center space-x-2 sm:space-x-2.5 cursor-pointer select-none flex-shrink-0 z-10"
           >
