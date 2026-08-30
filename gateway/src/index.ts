@@ -829,6 +829,12 @@ app.get('/api/audit-logs', (req: Request, res: Response) => {
   res.json({ success: true, count: events.length, events });
 });
 
+app.get('/api/events', (req: Request, res: Response) => {
+  const limit = parseInt(req.query.limit as string) || 50;
+  const events = auditLog.getRecent(limit);
+  res.json({ success: true, count: events.length, events });
+});
+
 app.delete('/api/events', (req: Request, res: Response) => {
   auditLog.clear();
   res.json({ success: true, message: 'Audit events log cleared' });
