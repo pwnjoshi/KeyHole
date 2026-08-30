@@ -975,10 +975,16 @@ app.post('/api/agent/run', async (req: Request, res: Response): Promise<void> =>
     if (records.length === 0) {
       agentResponse = `No records matching the query parameters were found in the connected service.`;
     } else if (policy.connectorId === 'gmail') {
-      agentResponse = `Here is the summary of recent matching emails (filtered strictly to allowed fields):\n\n` +
-        records.map((r: any, idx: number) => 
-          `${idx + 1}. **${r.subject || 'No Subject'}**\n   - From: \`${r.sender || 'Unknown'}\`\n   - Date: ${r.date ? new Date(r.date).toLocaleDateString() : 'N/A'}`
-        ).join('\n\n');
+      agentResponse = `Here is the summary of matching emails (scoped by Keyhole ZK policy):\n\n` +
+        records.map((r: any, idx: number) => {
+          let item = `${idx + 1}. **${r.subject || 'No Subject'}**\n   - From: \`${r.sender || 'Unknown'}\`\n   - Date: ${r.date ? new Date(r.date).toLocaleDateString() : 'N/A'}`;
+          if (r.body || r.snippet) {
+            item += `\n   - Body Snippet (Allowed): "${(r.body || r.snippet).substring(0, 80)}..."`;
+          } else {
+            item += `\n   - Body Content: 🛡️ [ZK Shielded — 0 bytes leaked]`;
+          }
+          return item;
+        }).join('\n\n');
     } else if (policy.connectorId === 'gcal') {
       agentResponse = `Here are your scheduled calendar events:\n\n` +
         records.map((r: any, idx: number) =>

@@ -53,7 +53,7 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
     {
       label: '✨ Auto-Intent Smart Routing',
       connId: 'auto',
-      text: 'Scan recent job applicant emails and list candidate names, application dates, and subject lines.'
+      text: 'Scan recent emails, find the relevant messages, and extract metadata safely without leaking sensitive bodies.'
     },
     {
       label: 'Gmail Receipts (In-Scope)',
@@ -355,16 +355,28 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-slate-700">Enforced Field Bounds:</span>
-                <span className="font-mono text-[11px] text-indigo-600 font-bold">{selectedPolicy.connectorId}</span>
+                <span className="font-mono text-[11px] text-indigo-600 font-bold">
+                  {selectedConnectionId === 'auto' ? 'Auto-Intent Dynamic Scope' : selectedPolicy.connectorId}
+                </span>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {selectedPolicy.allowedFields.map(f => (
-                  <span key={f} className="px-2 py-0.5 rounded-md bg-white border border-slate-200 font-mono text-[10px] text-slate-700 font-bold">
+                  <span key={f} className="px-2 py-0.5 rounded-md bg-white border border-emerald-200 font-mono text-[10px] text-emerald-800 font-bold">
                     ✓ {f}
                   </span>
                 ))}
-                <span className="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 font-mono text-[10px] text-rose-700 font-bold">
-                  ✕ body, tokens, pii redacted
+                {!selectedPolicy.allowedFields.includes('body') && !selectedPolicy.allowedFields.includes('full_body') && (
+                  <span className="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 font-mono text-[10px] text-rose-700 font-bold">
+                    ✕ body shielded
+                  </span>
+                )}
+                {!selectedPolicy.allowedFields.includes('attachments') && (
+                  <span className="px-2 py-0.5 rounded-md bg-rose-50 border border-rose-200 font-mono text-[10px] text-rose-700 font-bold">
+                    ✕ attachments shielded
+                  </span>
+                )}
+                <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 font-mono text-[10px] text-slate-600 font-bold">
+                  ✕ auth_tokens &amp; secrets shielded
                 </span>
               </div>
             </div>
@@ -524,21 +536,25 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
                           return (
                             <div
                               key={key}
-                              className={`p-1 rounded ${
+                              className={`p-2 rounded-lg flex flex-col space-y-1 ${
                                 isAllowed
-                                  ? 'text-slate-300'
+                                  ? 'text-slate-300 bg-slate-900/60 border border-slate-800/80'
                                   : 'bg-rose-950/70 border border-rose-800/60 text-rose-300'
                               }`}
                             >
-                              <span className={isAllowed ? 'text-indigo-400 font-bold' : 'text-rose-400 font-bold'}>
-                                "{key}":
-                              </span>{' '}
-                              <span>{typeof val === 'object' ? JSON.stringify(val) : `"${String(val)}"`}</span>
-                              {!isAllowed && (
-                                <span className="ml-1 text-[8px] uppercase font-bold bg-rose-900 text-rose-200 px-1 rounded">
-                                  REDACTED
+                              <div className="flex items-center justify-between gap-1">
+                                <span className={isAllowed ? 'text-indigo-400 font-bold' : 'text-rose-400 font-bold'}>
+                                  "{key}":
                                 </span>
-                              )}
+                                {!isAllowed && (
+                                  <span className="text-[8px] uppercase font-bold bg-rose-900/90 text-rose-200 px-1.5 py-0.5 rounded border border-rose-700/60 flex-shrink-0">
+                                    REDACTED
+                                  </span>
+                                )}
+                              </div>
+                              <div className="break-all whitespace-pre-wrap text-[10px] text-slate-200">
+                                {typeof val === 'object' ? JSON.stringify(val) : `"${String(val)}"`}
+                              </div>
                             </div>
                           );
                         })
