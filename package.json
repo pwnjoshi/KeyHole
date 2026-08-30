@@ -15,7 +15,11 @@
     "test:contracts": "npm run test --prefix contracts",
     "test:gateway": "npm run test --prefix gateway",
     "test": "npm run test:contracts && npm run test:gateway",
-    "demo:agent": "npm run start --prefix agent-demo"
+    "demo:agent": "npm run start --prefix agent-demo",
+    "setup:google": "node scripts/setup-google.js"
+  },
+  "bin": {
+    "keyhole": "./bin/keyhole.js"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

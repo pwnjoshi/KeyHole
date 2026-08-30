@@ -23,6 +23,7 @@ import { GitHubConnector } from './connectors/github-connector.js';
 import { PostgresConnector } from './connectors/postgres-connector.js';
 import { SalesforceConnector } from './connectors/salesforce-connector.js';
 import { NotionConnector } from './connectors/notion-connector.js';
+import { nangoService } from './nango-service.js';
 
 dotenv.config();
 
@@ -231,18 +232,86 @@ app.get('/api/auth/me', requireAuth, (req: Request, res: Response): void => {
 });
 
 // ==========================================
-// 1. OAUTH & CONNECTOR CREDENTIALS
+// 1. OAUTH, NANGO & ENTERPRISE SERVICE ACCOUNT CREDENTIALS
 // ==========================================
 app.get('/api/auth/google/status', (req: Request, res: Response): void => {
   const isConnected = gmailConnector.isConfigured();
   const email = gmailConnector.getConnectedEmail();
-  res.json({ connected: isConnected, email: email || undefined });
+  const authType = gmailConnector.getAuthType();
+  res.json({
+    connected: isConnected,
+    email: email || undefined,
+    authType
+  });
 });
 
 app.get('/api/auth/google/credentials-status', (req: Request, res: Response): void => {
   res.json({
-    hasClientCredentials: gmailConnector.hasValidClientCredentials()
+    hasClientCredentials: gmailConnector.hasValidClientCredentials(),
+    nangoAvailable: nangoService.isConfigured()
   });
+});
+
+// 1.1 Nango 1-Click Connect Session Creation
+app.post('/api/nango/session', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, name, integrationKey } = req.body;
+    const endUserId = email || 'enterprise-user@company.corp';
+    const session = await nangoService.createConnectSession(endUserId, email, name, integrationKey);
+    res.json({ success: true, ...session });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 1.2 Nango Active Connections Listing
+app.get('/api/nango/connections', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const connections = await nangoService.listConnections();
+    res.json({ success: true, connections });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 1.3 Sync Nango Connection to Local Connectors
+app.post('/api/nango/sync', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const connections = await nangoService.listConnections();
+    let syncedCount = 0;
+    for (const conn of connections) {
+      if (conn.provider === 'google-mail' || conn.provider === 'google' || conn.provider_config_key.includes('google')) {
+        const tokenData = await nangoService.getConnectionToken(conn.connection_id, conn.provider_config_key);
+        if (tokenData?.credentials?.access_token) {
+          gmailConnector.setNangoCredentials(tokenData.credentials.access_token, conn.end_user?.email);
+          syncedCount++;
+        }
+      }
+    }
+    res.json({ success: true, synced: syncedCount, total: connections.length });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 1.4 Enterprise Service Account (Domain-Wide Delegation)
+app.post('/api/auth/google/service-account', requireAuth, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { serviceAccountJson, delegatedEmail } = req.body;
+    if (!serviceAccountJson || !delegatedEmail) {
+      res.status(400).json({ success: false, error: 'Service account JSON and delegated user email are required' });
+      return;
+    }
+    const parsedJson = typeof serviceAccountJson === 'string' ? JSON.parse(serviceAccountJson) : serviceAccountJson;
+    const connectedEmail = await gmailConnector.setServiceAccountCredentials(parsedJson, delegatedEmail);
+    res.json({
+      success: true,
+      message: `Enterprise Domain-Wide Delegation activated for ${connectedEmail}`,
+      email: connectedEmail
+    });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
 });
 
 app.post('/api/auth/google/credentials', requireAuth, (req: Request, res: Response): void => {

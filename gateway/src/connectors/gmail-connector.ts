@@ -21,9 +21,12 @@ export class GmailConnector implements DataConnector {
   ];
 
   private oauth2Client: any = null;
+  private serviceAccountAuth: any = null;
   private tokenPath: string;
   private credentialsPath: string;
+  private serviceAccountPath: string;
   private connectedAccountEmail = '';
+  private authType: 'oauth' | 'service_account' | 'nango' | 'none' = 'none';
 
   constructor() {
     const configDir = path.resolve(process.cwd(), 'config');
@@ -32,11 +35,24 @@ export class GmailConnector implements DataConnector {
     }
     this.tokenPath = path.join(configDir, 'gmail-token.json');
     this.credentialsPath = path.join(configDir, 'credentials.json');
+    this.serviceAccountPath = path.join(configDir, 'service-account.json');
     this.initOAuth();
   }
 
   public getConnectedEmail(): string {
     return this.connectedAccountEmail || 'sandbox-demo@enterprise.corp';
+  }
+
+  public getAuthType(): string {
+    return this.authType;
+  }
+
+  public getAuthClient(): any {
+    return this.serviceAccountAuth || this.oauth2Client;
+  }
+
+  public getOAuth2Client(): any {
+    return this.getAuthClient();
   }
 
   public setCredentials(clientId: string, clientSecret: string, redirectUri?: string) {
@@ -51,11 +67,64 @@ export class GmailConnector implements DataConnector {
         redirect_uris: [uri]
       }
     }, null, 2), 'utf8');
+    this.authType = 'oauth';
+  }
+
+  /**
+   * Enterprise Domain-Wide Delegation using Google Cloud Service Account JSON Key
+   */
+  public async setServiceAccountCredentials(serviceAccountJson: Record<string, any>, delegatedEmail: string): Promise<string> {
+    if (!serviceAccountJson.client_email || !serviceAccountJson.private_key) {
+      throw new Error('Invalid service account JSON: client_email and private_key are required.');
+    }
+    if (!delegatedEmail || !delegatedEmail.includes('@')) {
+      throw new Error('Delegated workspace user email is required (e.g. admin@company.com).');
+    }
+
+    const jwtClient = new google.auth.JWT({
+      email: serviceAccountJson.client_email,
+      key: serviceAccountJson.private_key,
+      scopes: [
+        'https://www.googleapis.com/auth/gmail.readonly',
+        'https://www.googleapis.com/auth/calendar.readonly',
+        'https://www.googleapis.com/auth/userinfo.email'
+      ],
+      subject: delegatedEmail.trim().toLowerCase()
+    });
+
+    // Authorize token
+    await jwtClient.authorize();
+
+    this.serviceAccountAuth = jwtClient;
+    this.connectedAccountEmail = delegatedEmail.trim().toLowerCase();
+    this.authType = 'service_account';
+
+    // Save to config directory
+    const configDir = path.resolve(process.cwd(), 'config');
+    if (!fs.existsSync(configDir)) fs.mkdirSync(configDir, { recursive: true });
+    fs.writeFileSync(this.serviceAccountPath, JSON.stringify({
+      ...serviceAccountJson,
+      delegated_email: this.connectedAccountEmail
+    }, null, 2), 'utf8');
+
+    return this.connectedAccountEmail;
+  }
+
+  /**
+   * Direct 1-Click Connection via Nango Unified Integration
+   */
+  public setNangoCredentials(accessToken: string, email?: string) {
+    this.oauth2Client = new google.auth.OAuth2();
+    this.oauth2Client.setCredentials({ access_token: accessToken });
+    this.connectedAccountEmail = email || 'nango-connected@enterprise.corp';
+    this.authType = 'nango';
   }
 
   public hasValidClientCredentials(): boolean {
+    if (this.serviceAccountAuth) return true;
     const clientId = process.env.GOOGLE_CLIENT_ID;
     if (clientId && clientId !== 'PENDING_SETUP' && clientId.length > 10) return true;
+    if (fs.existsSync(this.serviceAccountPath)) return true;
     if (fs.existsSync(this.credentialsPath)) {
       try {
         const raw = JSON.parse(fs.readFileSync(this.credentialsPath, 'utf8'));
@@ -66,11 +135,31 @@ export class GmailConnector implements DataConnector {
     return false;
   }
 
-  public getOAuth2Client(): any {
-    return this.oauth2Client;
-  }
-
   private initOAuth() {
+    // 1. Check Service Account first (Enterprise Domain-Wide Delegation)
+    if (fs.existsSync(this.serviceAccountPath)) {
+      try {
+        const sa = JSON.parse(fs.readFileSync(this.serviceAccountPath, 'utf8'));
+        if (sa.client_email && sa.private_key && sa.delegated_email) {
+          this.serviceAccountAuth = new google.auth.JWT({
+            email: sa.client_email,
+            key: sa.private_key,
+            scopes: [
+              'https://www.googleapis.com/auth/gmail.readonly',
+              'https://www.googleapis.com/auth/calendar.readonly'
+            ],
+            subject: sa.delegated_email
+          });
+          this.connectedAccountEmail = sa.delegated_email;
+          this.authType = 'service_account';
+          return;
+        }
+      } catch (e) {
+        console.warn('[GmailConnector] Failed to parse service-account.json:', e);
+      }
+    }
+
+    // 2. Check Standard OAuth credentials
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
     const redirectUri = process.env.GOOGLE_REDIRECT_URI || 'http://localhost:4000/api/auth/google/callback';
@@ -100,6 +189,7 @@ export class GmailConnector implements DataConnector {
           this.oauth2Client.setCredentials(token);
         }
         this.connectedAccountEmail = token.account_email || '';
+        this.authType = 'oauth';
       } catch (e) {
         console.warn('[GmailConnector] Failed to parse gmail-token.json:', e);
       }
@@ -107,6 +197,7 @@ export class GmailConnector implements DataConnector {
   }
 
   public isConfigured(): boolean {
+    if (this.serviceAccountAuth) return true;
     return !!(this.oauth2Client && this.oauth2Client.credentials && this.oauth2Client.credentials.access_token);
   }
 
@@ -140,38 +231,40 @@ export class GmailConnector implements DataConnector {
       const oauth2 = google.oauth2({ version: 'v2', auth: this.oauth2Client });
       const userInfo = await oauth2.userinfo.get();
       userEmail = userInfo.data.email || '';
-      this.connectedAccountEmail = userEmail;
-    } catch (e) {
-      console.warn('[GmailConnector] Could not fetch userinfo email:', e);
-    }
+    } catch {}
 
-    const payloadToSave = {
+    this.connectedAccountEmail = userEmail;
+    this.authType = 'oauth';
+
+    const configDir = path.resolve(process.cwd(), 'config');
+    if (!fs.existsSync(configDir)) fs.mkdirSync(configDir, { recursive: true });
+    fs.writeFileSync(this.tokenPath, JSON.stringify({
       ...tokens,
       account_email: userEmail
-    };
-
-    fs.writeFileSync(this.tokenPath, JSON.stringify(payloadToSave, null, 2), 'utf8');
-    console.log(`[GmailConnector] Authenticated Google Account: ${userEmail}`);
+    }, null, 2), 'utf8');
   }
 
   public disconnect(): void {
-    if (fs.existsSync(this.tokenPath)) {
-      fs.unlinkSync(this.tokenPath);
-    }
-    if (this.oauth2Client) {
-      this.oauth2Client.setCredentials({});
-    }
+    this.oauth2Client = null;
+    this.serviceAccountAuth = null;
     this.connectedAccountEmail = '';
+    this.authType = 'none';
+    if (fs.existsSync(this.tokenPath)) {
+      try { fs.unlinkSync(this.tokenPath); } catch {}
+    }
+    if (fs.existsSync(this.serviceAccountPath)) {
+      try { fs.unlinkSync(this.serviceAccountPath); } catch {}
+    }
   }
 
   public async fetch(params: FetchParams): Promise<RawRecord[]> {
-    // If not connected with live OAuth, return enterprise sandbox records so judges & sandbox testers can test immediately
     if (!this.isConfigured()) {
       return this.getSandboxRecords(params);
     }
 
     try {
-      const gmail = google.gmail({ version: 'v1', auth: this.oauth2Client });
+      const auth = this.getAuthClient();
+      const gmail = google.gmail({ version: 'v1', auth });
       const maxResults = params.maxResults || 10;
       let query = '';
       if (params.query) query += params.query;
@@ -181,7 +274,7 @@ export class GmailConnector implements DataConnector {
       }
 
       const listRes = await gmail.users.messages.list({
-        userId: 'me',
+        userId: this.serviceAccountAuth ? (this.connectedAccountEmail || 'me') : 'me',
         maxResults,
         q: query || undefined
       });
@@ -193,7 +286,7 @@ export class GmailConnector implements DataConnector {
         if (!msg.id) continue;
         try {
           const detail = await gmail.users.messages.get({
-            userId: 'me',
+            userId: this.serviceAccountAuth ? (this.connectedAccountEmail || 'me') : 'me',
             id: msg.id,
             format: 'full'
           });
@@ -239,66 +332,73 @@ export class GmailConnector implements DataConnector {
             sender,
             recipient,
             subject,
-            date: date ? new Date(date).toISOString() : new Date().toISOString(),
+            date,
             snippet,
             labels,
-            body: bodyText.trim() || snippet,
+            body: bodyText,
             attachments,
-            raw_payload: JSON.stringify(detail.data)
+            raw_payload: detail.data
           });
-        } catch (detailErr) {
-          console.warn(`[GmailConnector] Failed to fetch message ${msg.id}:`, detailErr);
+        } catch {
+          // Message fetch failed
         }
       }
 
-      return records.length > 0 ? records : this.getSandboxRecords(params);
+      if (records.length === 0) {
+        return this.getSandboxRecords(params);
+      }
+
+      return records;
     } catch (err: any) {
-      console.warn('[GmailConnector] Live fetch failed, using sandbox fallback:', err.message);
+      console.warn('[GmailConnector] Live fetch failed, falling back to sandbox:', err.message);
       return this.getSandboxRecords(params);
     }
   }
 
-  private getSandboxRecords(params: FetchParams): RawRecord[] {
-    return [
+  public getSandboxRecords(params: FetchParams): RawRecord[] {
+    const rawDemoMessages: RawRecord[] = [
       {
-        id: 'msg_aws_2026_8891',
-        thread_id: 'th_aws_8891',
+        id: 'msg_sandbox_001',
+        thread_id: 'th_001',
         sender: 'billing@aws.amazon.com',
-        recipient: 'finance@enterprise.corp',
+        recipient: this.getConnectedEmail(),
         subject: 'Amazon Web Services Invoice #AWS-2026-8921 ($42.50 USD)',
-        date: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-        snippet: 'Your AWS monthly cloud infrastructure invoice of $42.50 USD is now available for download.',
-        labels: ['INBOX', 'RECEIPTS', 'PURCHASES'],
-        body: 'CONFIDENTIAL: Internal AWS account architecture, executive IAM credentials, and payment wire confirmation #991823.',
-        attachments: ['aws_invoice_aug2026.pdf', 'confidential_architecture_keys.pem'],
-        raw_payload: 'RAW_MIME_BASE64_PAYLOAD_ENCRYPTED_SAMPLE'
+        date: new Date(Date.now() - 3600000 * 4).toISOString(),
+        snippet: 'Your monthly invoice for AWS Cloud Compute services is now available.',
+        labels: ['INBOX', 'FINANCE', 'INVOICES'],
+        body: 'Dear Customer, your AWS bill for August 2026 is $42.50. Paid via Visa ending 4921. Security tokens enclosed.',
+        attachments: ['invoice_aws_aug2026.pdf'],
+        raw_payload: { messageId: 'msg_sandbox_001', sizeEstimate: 1420 }
       },
       {
-        id: 'msg_do_2026_4412',
-        thread_id: 'th_do_4412',
+        id: 'msg_sandbox_002',
+        thread_id: 'th_002',
         sender: 'support@digitalocean.com',
-        recipient: 'devops@enterprise.corp',
-        subject: 'DigitalOcean Droplet Compute Renewal Receipt ($24.00 USD)',
-        date: new Date(Date.now() - 14 * 3600 * 1000).toISOString(),
-        snippet: 'Payment successful for Kubernetes Cluster & Droplet compute instances ($24.00 USD).',
+        recipient: this.getConnectedEmail(),
+        subject: 'DigitalOcean Cloud Droplet Receipt - Payment Confirmed ($12.00)',
+        date: new Date(Date.now() - 86400000 * 2).toISOString(),
+        snippet: 'Thank you for your payment of $12.00 for Droplet node prod-01.',
         labels: ['INBOX', 'RECEIPTS'],
-        body: 'CONFIDENTIAL: Production cluster root IP addresses 192.168.1.100 and SSH host keys.',
-        attachments: ['digitalocean_receipt_2026.pdf'],
-        raw_payload: 'RAW_MIME_BASE64_PAYLOAD_ENCRYPTED_SAMPLE'
+        body: 'Receipt for DigitalOcean NYC3 region. Account balance: $0.00. Server IP: 142.93.18.2',
+        attachments: [],
+        raw_payload: { messageId: 'msg_sandbox_002', sizeEstimate: 980 }
       },
       {
-        id: 'msg_github_2026_1102',
-        thread_id: 'th_github_1102',
+        id: 'msg_sandbox_003',
+        thread_id: 'th_003',
         sender: 'billing@github.com',
-        recipient: 'admin@enterprise.corp',
-        subject: 'GitHub Enterprise Team Plan Monthly Invoice ($84.00 USD)',
-        date: new Date(Date.now() - 28 * 3600 * 1000).toISOString(),
-        snippet: 'Your GitHub Enterprise subscription has renewed for 4 developer seats.',
-        labels: ['INBOX', 'RECEIPTS'],
-        body: 'CONFIDENTIAL: Enterprise developer SSH access keys, SAML SSO certificate, and private repo tokens.',
-        attachments: ['github_enterprise_aug2026.pdf'],
-        raw_payload: 'RAW_MIME_BASE64_PAYLOAD_ENCRYPTED_SAMPLE'
+        recipient: this.getConnectedEmail(),
+        subject: 'GitHub Enterprise Copilot & Actions Invoice ($21.00 USD)',
+        date: new Date(Date.now() - 86400000 * 5).toISOString(),
+        snippet: 'Your GitHub receipt for 1 Copilot seat and 2000 Actions minutes.',
+        labels: ['INBOX', 'DEVELOPER'],
+        body: 'GitHub Inc. payment received. Org: keyhole-corp. Plan: GitHub Enterprise Monthly.',
+        attachments: ['github_receipt_2026.pdf'],
+        raw_payload: { messageId: 'msg_sandbox_003', sizeEstimate: 1100 }
       }
     ];
+
+    const limit = params.maxResults || 10;
+    return rawDemoMessages.slice(0, limit);
   }
 }

@@ -30,7 +30,7 @@ import {
   ShieldCheck,
   Zap
 } from 'lucide-react';
-import { HugeShieldCheckIcon, HugeKeyholeIcon, HugeBotIcon } from './HugeIcons.tsx';
+import { HugeShieldCheckIcon, HugeKeyholeIcon, HugeBotIcon, HugeCpuIcon } from './HugeIcons.tsx';
 
 interface IntegrationService {
   id: string;
@@ -199,6 +199,12 @@ export const IntegrationsHub: React.FC = () => {
       redirectPath: ''
     }
   ];
+
+  const [googleConnectMode, setGoogleConnectMode] = useState<'nango' | 'service_account' | 'cli_custom'>('nango');
+  const [serviceAccountJsonInput, setServiceAccountJsonInput] = useState('');
+  const [delegatedEmailInput, setDelegatedEmailInput] = useState('joshipawan2021@gmail.com');
+  const [isConnectingNango, setIsConnectingNango] = useState(false);
+  const [isSavingServiceAccount, setIsSavingServiceAccount] = useState(false);
 
   const fetchStatus = async () => {
     try {
@@ -435,6 +441,91 @@ export const IntegrationsHub: React.FC = () => {
       setErrorMessage(err.message || 'Connection error. Please check your credentials.');
     } finally {
       setIsSavingCreds(false);
+    }
+  };
+
+  const handleConnectNango = async () => {
+    setIsConnectingNango(true);
+    setErrorMessage(null);
+    try {
+      const res = await fetch('/api/nango/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'joshipawan2021@gmail.com',
+          name: 'Pawan Joshi',
+          integrationKey: 'google'
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.connectLink) {
+        const width = 600, height = 700;
+        const left = window.screen.width / 2 - width / 2;
+        const top = window.screen.height / 2 - height / 2;
+        const popup = window.open(
+          data.connectLink,
+          'NangoConnect',
+          `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`
+        );
+
+        const interval = setInterval(async () => {
+          if (popup?.closed) {
+            clearInterval(interval);
+            try {
+              const syncRes = await fetch('/api/nango/sync', { method: 'POST' });
+              await syncRes.json();
+              fetchStatus();
+              setSelectedServiceForModal(null);
+              showSuccess('Google Workspace successfully connected via Nango 1-Click!');
+            } catch {}
+            setIsConnectingNango(false);
+          }
+        }, 1500);
+      } else {
+        setErrorMessage(data.error || 'Failed to initialize Nango Connect session.');
+        setIsConnectingNango(false);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Nango connection failed.');
+      setIsConnectingNango(false);
+    }
+  };
+
+  const handleSaveServiceAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingServiceAccount(true);
+    setErrorMessage(null);
+    try {
+      const token = localStorage.getItem('keyhole-jwt');
+      const res = await fetch('/api/auth/google/service-account', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          serviceAccountJson: serviceAccountJsonInput.trim(),
+          delegatedEmail: delegatedEmailInput.trim()
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        fetchStatus();
+        const updated = {
+          ...connectedServices,
+          google_workspace: { connected: true, identifier: data.email || delegatedEmailInput, isLive: true }
+        };
+        setConnectedServices(updated);
+        localStorage.setItem('keyhole_connected_services', JSON.stringify(updated));
+        setSelectedServiceForModal(null);
+        showSuccess(`Domain-wide delegation activated for ${data.email || delegatedEmailInput}!`);
+      } else {
+        setErrorMessage(data.error || 'Failed to activate Service Account credentials.');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to save Service Account credentials.');
+    } finally {
+      setIsSavingServiceAccount(false);
     }
   };
 
@@ -813,88 +904,270 @@ export const IntegrationsHub: React.FC = () => {
                     </button>
                   </div>
 
-                  <div className="relative flex py-1 items-center">
-                    <div className="flex-grow border-t border-slate-200" />
-                    <span className="flex-shrink mx-3 text-[10px] uppercase font-bold text-slate-400">Or Connect Custom Google Cloud App</span>
-                    <div className="flex-grow border-t border-slate-200" />
+                  {/* Production Live Connection Mode Switcher */}
+                  <div className="pt-2">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[11px] font-bold text-slate-800 uppercase tracking-wide">Live Enterprise Connection Methods</span>
+                      <span className="text-[10px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">Production Ready</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl">
+                      <button
+                        type="button"
+                        onClick={() => setGoogleConnectMode('nango')}
+                        className={`py-2 px-2 text-[11px] font-bold rounded-lg transition text-center ${
+                          googleConnectMode === 'nango'
+                            ? 'bg-white text-indigo-700 shadow-xs'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        ⚡ 1-Click Nango
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setGoogleConnectMode('service_account')}
+                        className={`py-2 px-2 text-[11px] font-bold rounded-lg transition text-center ${
+                          googleConnectMode === 'service_account'
+                            ? 'bg-white text-indigo-700 shadow-xs'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        🏢 Service Account
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setGoogleConnectMode('cli_custom')}
+                        className={`py-2 px-2 text-[11px] font-bold rounded-lg transition text-center ${
+                          googleConnectMode === 'cli_custom'
+                            ? 'bg-white text-indigo-700 shadow-xs'
+                            : 'text-slate-500 hover:text-slate-800'
+                        }`}
+                      >
+                        💻 CLI / Custom Keys
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Real Google Cloud Credentials Form */}
-                  <form onSubmit={handleSaveGoogleCredentials} className="space-y-3">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="block text-slate-700 font-semibold text-xs">
-                          Authorized Redirect URI
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(`${window.location.origin}/api/auth/google/callback`);
-                            showSuccess('Copied Redirect URI to clipboard!');
-                          }}
-                          className="text-[10px] text-indigo-600 hover:text-indigo-700 font-mono font-medium flex items-center space-x-1"
-                        >
-                          <Copy className="w-3 h-3" />
-                          <span>Copy Callback URI</span>
-                        </button>
+                  {/* MODE 1: NANGO 1-CLICK MANAGED INTEGRATION */}
+                  {googleConnectMode === 'nango' && (
+                    <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-slate-50 to-white border border-indigo-200/80 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <HugeCpuIcon size={18} className="text-indigo-600" />
+                          <span className="font-bold text-xs text-slate-900">Unified Managed OAuth (Powered by Nango)</span>
+                        </div>
+                        <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                          Zero GCP Setup
+                        </span>
                       </div>
-                      <input
-                        type="text"
-                        readOnly
-                        value={`${window.location.origin}/api/auth/google/callback`}
-                        className="w-full p-2 rounded-xl bg-slate-100 border border-slate-200 font-mono text-[11px] text-slate-600 focus:outline-none cursor-default"
-                      />
-                      <span className="text-[10px] text-slate-400 mt-0.5 block">
-                        Add this exact URI in Google Cloud Console &gt; APIs &amp; Services &gt; Credentials &gt; Authorized Redirect URIs
-                      </span>
+                      <p className="text-[11px] text-slate-600 leading-relaxed">
+                        Connect your live Google Workspace (Gmail &amp; Calendar) in <strong>1 click</strong> via Nango's pre-verified enterprise integration infrastructure. No Google Cloud projects, Client IDs, or redirect URIs required.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleConnectNango}
+                        disabled={isConnectingNango}
+                        className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold text-xs transition shadow-md flex items-center justify-center space-x-2"
+                      >
+                        {isConnectingNango ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                            <span>Opening Nango Secure Connect Popup...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4 text-indigo-200" />
+                            <span>1-Click Connect Google Workspace (via Nango)</span>
+                            <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                          </>
+                        )}
+                      </button>
                     </div>
+                  )}
 
-                    <div>
-                      <label className="block text-slate-700 font-semibold text-xs mb-1">
-                        OAuth 2.0 Client ID
-                      </label>
-                      <input
-                        type="text"
-                        value={clientIdInput}
-                        onChange={(e) => setClientIdInput(e.target.value)}
-                        placeholder="e.g. 123456789-abcdef.apps.googleusercontent.com"
-                        className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs focus:outline-none focus:border-indigo-500"
-                        required
-                      />
+                  {/* MODE 2: ENTERPRISE SERVICE ACCOUNT (DOMAIN-WIDE DELEGATION) */}
+                  {googleConnectMode === 'service_account' && (
+                    <form onSubmit={handleSaveServiceAccount} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                          <span className="font-bold text-xs text-slate-900">Domain-Wide Delegation (Google Service Account)</span>
+                        </div>
+                        <span className="text-[10px] font-mono text-slate-500">B2B Enterprise</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 leading-relaxed">
+                        For IT administrators: upload your Google Cloud Service Account JSON key to authorize company-wide mailboxes without individual employee OAuth prompts.
+                      </p>
+                      <div>
+                        <label className="block text-slate-700 font-semibold text-xs mb-1">
+                          Delegated Workspace Admin User Email
+                        </label>
+                        <input
+                          type="email"
+                          value={delegatedEmailInput}
+                          onChange={(e) => setDelegatedEmailInput(e.target.value)}
+                          placeholder="e.g. admin@enterprise.com"
+                          className="w-full p-2.5 rounded-xl bg-white border border-slate-200 font-mono text-xs focus:outline-none focus:border-indigo-500"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-slate-700 font-semibold text-xs">
+                            Service Account Key JSON
+                          </label>
+                          <label className="text-[10px] text-indigo-600 hover:text-indigo-700 font-semibold cursor-pointer">
+                            Upload .json file
+                            <input
+                              type="file"
+                              accept=".json"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) {
+                                  const reader = new FileReader();
+                                  reader.onload = (ev) => {
+                                    setServiceAccountJsonInput(ev.target?.result as string);
+                                    showSuccess('Loaded service-account.json!');
+                                  };
+                                  reader.readAsText(file);
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                        <textarea
+                          rows={4}
+                          value={serviceAccountJsonInput}
+                          onChange={(e) => setServiceAccountJsonInput(e.target.value)}
+                          placeholder='Paste {"type": "service_account", "project_id": "...", "private_key": "...", "client_email": "..."}'
+                          className="w-full p-2.5 rounded-xl bg-white border border-slate-200 font-mono text-[11px] focus:outline-none focus:border-indigo-500"
+                          required
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={isSavingServiceAccount}
+                        className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition flex items-center justify-center space-x-2 shadow-sm"
+                      >
+                        {isSavingServiceAccount ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            <span>Validating Service Account Key...</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            <span>Activate Domain-Wide Delegation</span>
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  )}
+
+                  {/* MODE 3: AUTOMATED CLI SCRIPT & CUSTOM OAUTH KEYS */}
+                  {googleConnectMode === 'cli_custom' && (
+                    <div className="space-y-3">
+                      {/* Automated CLI Setup Callout */}
+                      <div className="p-3.5 rounded-2xl bg-slate-900 text-white space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-xs text-indigo-300">Automated 10-Second Setup via CLI</span>
+                          <span className="text-[9px] font-mono uppercase bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded">Zero Web Clicks</span>
+                        </div>
+                        <p className="text-[11px] text-slate-300 leading-relaxed">
+                          Run this command in your terminal to automatically enable GCP APIs and populate your environment:
+                        </p>
+                        <div className="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                          <code className="font-mono text-xs text-emerald-400">npx keyhole setup-google</code>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText('npx keyhole setup-google');
+                              showSuccess('Copied CLI command to clipboard!');
+                            }}
+                            className="p-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] flex items-center space-x-1"
+                          >
+                            <Copy className="w-3 h-3" />
+                            <span>Copy</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Manual Form */}
+                      <form onSubmit={handleSaveGoogleCredentials} className="space-y-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                        <span className="font-bold text-xs text-slate-800 block">Or Enter Manual GCP OAuth Keys:</span>
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-slate-700 font-semibold text-[11px]">
+                              Authorized Redirect URI
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(`${window.location.origin}/api/auth/google/callback`);
+                                showSuccess('Copied Redirect URI to clipboard!');
+                              }}
+                              className="text-[10px] text-indigo-600 hover:text-indigo-700 font-mono font-medium flex items-center space-x-1"
+                            >
+                              <Copy className="w-3 h-3" />
+                              <span>Copy URI</span>
+                            </button>
+                          </div>
+                          <input
+                            type="text"
+                            readOnly
+                            value={`${window.location.origin}/api/auth/google/callback`}
+                            className="w-full p-2 rounded-xl bg-white border border-slate-200 font-mono text-[11px] text-slate-600 focus:outline-none cursor-default"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-700 font-semibold text-[11px] mb-1">
+                            OAuth 2.0 Client ID
+                          </label>
+                          <input
+                            type="text"
+                            value={clientIdInput}
+                            onChange={(e) => setClientIdInput(e.target.value)}
+                            placeholder="e.g. 123456789-abcdef.apps.googleusercontent.com"
+                            className="w-full p-2 rounded-xl bg-white border border-slate-200 font-mono text-xs focus:outline-none focus:border-indigo-500"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-slate-700 font-semibold text-[11px] mb-1">
+                            OAuth 2.0 Client Secret
+                          </label>
+                          <input
+                            type="password"
+                            value={clientSecretInput}
+                            onChange={(e) => setClientSecretInput(e.target.value)}
+                            placeholder="GOCSPX-..."
+                            className="w-full p-2 rounded-xl bg-white border border-slate-200 font-mono text-xs focus:outline-none focus:border-indigo-500"
+                            required
+                          />
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={isSavingCreds}
+                          className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition flex items-center justify-center space-x-2 shadow-sm"
+                        >
+                          {isSavingCreds ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>Saving &amp; Connecting...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span>Save &amp; Authorize Live Google App</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </>
+                          )}
+                        </button>
+                      </form>
                     </div>
-
-                    <div>
-                      <label className="block text-slate-700 font-semibold text-xs mb-1">
-                        OAuth 2.0 Client Secret
-                      </label>
-                      <input
-                        type="password"
-                        value={clientSecretInput}
-                        onChange={(e) => setClientSecretInput(e.target.value)}
-                        placeholder="GOCSPX-..."
-                        className="w-full p-2.5 rounded-xl bg-slate-50 border border-slate-200 font-mono text-xs focus:outline-none focus:border-indigo-500"
-                        required
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={isSavingCreds}
-                      className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition flex items-center justify-center space-x-2 shadow-sm"
-                    >
-                      {isSavingCreds ? (
-                        <>
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                          <span>Saving &amp; Connecting...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Save &amp; Authorize Live Google Workspace</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </>
-                      )}
-                    </button>
-                  </form>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-4 pt-2">
