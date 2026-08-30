@@ -51,9 +51,24 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
 
   const quickPrompts = [
     {
+      label: '✨ Auto-Intent Smart Routing',
+      connId: 'auto',
+      text: 'Scan recent job applicant emails and list candidate names, application dates, and subject lines.'
+    },
+    {
       label: 'Gmail Receipts (In-Scope)',
       connId: 'conn_receipts_bot',
       text: 'Scan recent emails for vendor invoices and list sender, subject, and date.'
+    },
+    {
+      label: 'HR Candidate Screener (In-Scope)',
+      connId: 'conn_recruiting_screener',
+      text: 'Scan inbound recruiting inquiries for sender and dates while masking resumes and PII.'
+    },
+    {
+      label: 'Security Threat Scanner (In-Scope)',
+      connId: 'conn_phishing_scanner',
+      text: 'Analyze suspicious incoming email sender headers for threat hunting.'
     },
     {
       label: 'Exfiltration Attack (Out-of-Scope)',

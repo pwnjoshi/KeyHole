@@ -30,6 +30,42 @@ export const INITIAL_DEFAULT_POLICIES = [
     canary_enabled: true
   },
   {
+    id: 'conn_recruiting_screener',
+    name: 'HR Recruiting & Candidate Screener',
+    connector_id: 'gmail',
+    description: 'Scans inbound candidate application emails for sender metadata and dates while cryptographically masking applicant resumes, PII, and salary requirements.',
+    allowed_fields: ['sender', 'subject', 'date'],
+    allowed_labels: ['INBOX', 'CAREERS', 'RECRUITING'],
+    max_records: 10,
+    status: 'active',
+    expires_at: null,
+    canary_enabled: true
+  },
+  {
+    id: 'conn_phishing_scanner',
+    name: 'Security Ops Phishing & Threat Scanner',
+    connector_id: 'gmail',
+    description: 'Analyzes suspicious email sender headers and delivery dates for threat hunting. Confidential executive message bodies and passwords remain masked.',
+    allowed_fields: ['sender', 'subject', 'date'],
+    allowed_labels: ['INBOX', 'SPAM'],
+    max_records: 10,
+    status: 'active',
+    expires_at: null,
+    canary_enabled: true
+  },
+  {
+    id: 'conn_newsletter_digest',
+    name: 'Market Intelligence & Newsletter Digest',
+    connector_id: 'gmail',
+    description: 'Aggregates industry newsletter subjects and dates while keeping private employee correspondence sealed.',
+    allowed_fields: ['sender', 'subject', 'date'],
+    allowed_labels: ['INBOX', 'NEWSLETTERS'],
+    max_records: 10,
+    status: 'active',
+    expires_at: null,
+    canary_enabled: true
+  },
+  {
     id: 'conn_m365_invoices',
     name: 'Microsoft 365 Enterprise Auditor',
     connector_id: 'm365',

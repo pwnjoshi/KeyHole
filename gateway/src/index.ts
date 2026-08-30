@@ -509,6 +509,41 @@ app.get('/api/midnight/contract-state', async (req: Request, res: Response): Pro
 // ==========================================
 // 2. REAL AUTONOMOUS AI AGENT EXECUTION RUNNER
 // ==========================================
+function autoRouteIntentToPolicy(prompt: string): string {
+  const p = prompt.toLowerCase();
+  if (p.includes('calendar') || p.includes('schedule') || p.includes('meeting') || p.includes('event')) {
+    return 'conn_calendar_scheduler';
+  }
+  if (p.includes('slack') || p.includes('channel') || p.includes('triage alert')) {
+    return 'conn_slack_triage';
+  }
+  if (p.includes('github') || p.includes('git') || p.includes('pr') || p.includes('pull request') || p.includes('issue') || p.includes('repo')) {
+    return 'conn_github_triage';
+  }
+  if (p.includes('postgres') || p.includes('sql') || p.includes('database') || p.includes('subscription') || p.includes('tier') || p.includes('customer record')) {
+    return 'conn_postgres_analytics';
+  }
+  if (p.includes('salesforce') || p.includes('lead') || p.includes('crm') || p.includes('pipeline')) {
+    return 'conn_salesforce_crm';
+  }
+  if (p.includes('notion') || p.includes('wiki') || p.includes('docs') || p.includes('confluence') || p.includes('knowledge')) {
+    return 'conn_notion_docs';
+  }
+  if (p.includes('m365') || p.includes('outlook') || p.includes('exchange') || p.includes('graph')) {
+    return 'conn_m365_invoices';
+  }
+  if (p.includes('recruit') || p.includes('applicant') || p.includes('candidate') || p.includes('hiring') || p.includes('resume')) {
+    return 'conn_recruiting_screener';
+  }
+  if (p.includes('phish') || p.includes('spam') || p.includes('threat') || p.includes('dkim') || p.includes('spf') || p.includes('header')) {
+    return 'conn_phishing_scanner';
+  }
+  if (p.includes('newsletter') || p.includes('digest') || p.includes('marketing') || p.includes('subscription mail')) {
+    return 'conn_newsletter_digest';
+  }
+  return 'conn_receipts_bot';
+}
+
 app.post('/api/agent/run', async (req: Request, res: Response): Promise<void> => {
   try {
     const { prompt, connectionId, model } = req.body;
@@ -517,8 +552,12 @@ app.post('/api/agent/run', async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    const targetConnId = connectionId || 'conn_receipts_bot';
-    const policy = policyStore.get(targetConnId);
+    const targetConnId = (connectionId && connectionId !== 'auto') ? connectionId : autoRouteIntentToPolicy(prompt);
+    let policy = policyStore.get(targetConnId);
+    if (!policy) {
+      // Fallback to default
+      policy = policyStore.get('conn_receipts_bot') || policyStore.getAll()[0];
+    }
     if (!policy) {
       res.status(404).json({ success: false, error: `Policy '${targetConnId}' not found` });
       return;

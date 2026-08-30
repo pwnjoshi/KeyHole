@@ -40,21 +40,21 @@ export const JudgeGuidedTour: React.FC = () => {
       badge: 'Step 2 of 5',
       icon: <Flame className="w-4 h-4 text-rose-600" />,
       description: 'Simulate active prompt injection exfiltration and zero-day attacks. See Keyhole immediately return HTTP 403 / HTTP 423 session lock, quarantining rogue agents.',
-      actionLabel: 'Open Judge Sandbox',
-      keyBenefit: 'Zero-day canary traps trap malicious LLM prompts before data exfiltration occurs.'
+      actionLabel: 'Open Attack Sandbox',
+      keyBenefit: 'Zero-day canary traps lock malicious LLM prompts before data exfiltration occurs.'
     },
     {
-      title: '3. Side-by-Side Redaction Diff',
-      path: '/studio',
+      title: '3. 1-Click Integrations Hub',
+      path: '/integrations',
       badge: 'Step 3 of 5',
       icon: <Split className="w-4 h-4 text-emerald-600" />,
-      description: 'Inspect the live difference between raw upstream enterprise payloads (containing credit cards & session tokens) and sanitized views seen by the AI agent.',
-      actionLabel: 'View Redaction Diff',
-      keyBenefit: 'Private data fields never enter the LLM inference prompt context.'
+      description: 'Connect enterprise data sources (Gmail, Slack, GitHub, Postgres, Salesforce, Notion) using Nango 1-Click OAuth, Google Service Accounts, or Sandbox test keys.',
+      actionLabel: 'Open Integrations Hub',
+      keyBenefit: 'Unified 1-click enterprise connector onboarding with zero GCP setup required.'
     },
     {
       title: '4. Midnight Compact ZK Circuit Explorer',
-      path: '/explorer',
+      path: '/circuit',
       badge: 'Step 4 of 5',
       icon: <HugeCpuIcon size={18} className="text-indigo-600" />,
       description: 'Inspect the formal Midnight Compact v0.34 smart contract, compiled ZKIR opcode constraints, and test the real-time Cryptographic Proof Verifier sandbox.',
@@ -62,13 +62,13 @@ export const JudgeGuidedTour: React.FC = () => {
       keyBenefit: 'Mathematically proves (response_mask & ~allowed_mask) == 0 in zero-knowledge.'
     },
     {
-      title: '5. SOC 2 & HIPAA Compliance Certificate',
-      path: '/audit',
+      title: '5. Compliance & Ledger Analytics',
+      path: '/analytics',
       badge: 'Step 5 of 5',
       icon: <Award className="w-4 h-4 text-amber-500" />,
-      description: 'Generate an official cryptographic compliance certificate with full audit ledger trail, JSON export, and single-page @media print PDF support.',
-      actionLabel: 'View Compliance Ledger',
-      keyBenefit: 'Enterprise-ready auditor documentation with on-chain Midnight verification.'
+      description: 'Review real-time SOC 2 / HIPAA compliance metrics, tamper-evident audit logs, and on-chain Midnight ledger state commitments.',
+      actionLabel: 'View Compliance Analytics',
+      keyBenefit: 'Cryptographic compliance evidence for external auditors and enterprise CISOs.'
     }
   ];
 
