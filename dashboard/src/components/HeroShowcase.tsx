@@ -158,10 +158,36 @@ export const HeroShowcase: React.FC = () => {
         '"passwords": "$2a$12$e8Y9Uq0sL.8zN0n1F2j3K4l5M6n7O8p9Q"'
       ],
       circuit: 'scope-policy.compact:verify_sql_membership'
+    },
+    salesforce: {
+      name: 'Salesforce CRM & Pipeline',
+      allowed: [
+        '"lead_id": "00Q5000000X8921"',
+        '"company": "Apex Global Systems"',
+        '"status": "Working - Contacted"',
+        '"created_date": "2026-08-27"'
+      ],
+      leaked: [
+        '"revenue": "$2,400,000.00 ARR Contract Value"',
+        '"ssn_tax_id": "991-02-XXXX (Confidential)"'
+      ],
+      circuit: 'scope-policy.compact:verify_salesforce_membership'
+    },
+    notion: {
+      name: 'Notion & Internal Documentation',
+      allowed: [
+        '"page_title": "Q3 Engineering Roadmap"',
+        '"page_id": "page_notion_8912"',
+        '"last_edited_by": "alex@company.corp"'
+      ],
+      leaked: [
+        '"page_content": "CONFIDENTIAL: Internal acquisition strategy & employee equity pool..."'
+      ],
+      circuit: 'scope-policy.compact:verify_notion_membership'
     }
   };
 
-  const currentPayload = servicePayloads[visualizerService];
+  const currentPayload = servicePayloads[visualizerService as keyof typeof servicePayloads] || servicePayloads.gmail;
 
   return (
     <div className="space-y-16 sm:space-y-24 py-2 sm:py-4 relative animate-entrance">
@@ -182,7 +208,7 @@ export const HeroShowcase: React.FC = () => {
             <div className="lightning-beam" />
             <div className="lightning-pill-inner">
               <span className="bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-800 bg-clip-text text-transparent font-bold text-[11px] sm:text-xs tracking-wide">
-                Midnight Blockchain · Privacy-Preserving AI Track
+                Midnight Blockchain · Privacy-Preserving AI Track 2026
               </span>
             </div>
           </div>
@@ -223,7 +249,7 @@ export const HeroShowcase: React.FC = () => {
         >
           <p className="text-sm sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed px-2">
             Keyhole enforces a mathematical zero-knowledge perimeter on autonomous AI agents across{' '}
-            <strong className="text-slate-900 font-semibold">Google Workspace, Microsoft 365, Slack, GitHub & PostgreSQL</strong>.{' '}
+            <strong className="text-slate-900 font-semibold">Google Workspace, Microsoft 365, Slack, GitHub, Salesforce, Notion &amp; PostgreSQL</strong>.{' '}
             <strong className="text-slate-900 font-semibold">Midnight Compact smart contracts</strong> prove your agents never saw confidential data outside their declared scope.
           </p>
 
@@ -235,13 +261,21 @@ export const HeroShowcase: React.FC = () => {
               <HugePlayIcon size={16} />
               <span>Launch AI Agent Studio</span>
             </button>
+
+            <button
+              onClick={() => navigate('/integrations')}
+              className="w-full sm:w-auto px-6 py-3.5 sm:py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs border border-slate-800 flex items-center justify-center space-x-2 transition shadow-sm hover:-translate-y-0.5 min-h-[44px]"
+            >
+              <Zap className="w-4 h-4 text-indigo-400" />
+              <span>1-Click Integrations (8 Ready)</span>
+            </button>
             
             <button
               onClick={() => navigate('/about')}
               className="w-full sm:w-auto px-6 py-3.5 sm:py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs border border-slate-300 flex items-center justify-center space-x-2 transition shadow-card hover:-translate-y-0.5 min-h-[44px]"
             >
               <Shield className="w-4 h-4 text-indigo-600" />
-              <span>Architecture & Security Specs</span>
+              <span>Architecture &amp; Specs</span>
             </button>
           </div>
         </div>
@@ -270,17 +304,22 @@ export const HeroShowcase: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             {/* Service Switcher Tabs */}
             <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200 text-[11px] font-semibold">
-              {(['gmail', 'm365', 'slack', 'github', 'postgres'] as const).map((s) => (
+              {(['gmail', 'm365', 'slack', 'github', 'postgres', 'salesforce', 'notion'] as const).map((s) => (
                 <button
                   key={s}
-                  onClick={() => setVisualizerService(s)}
+                  onClick={() => setVisualizerService(s as any)}
                   className={`px-2.5 py-1 rounded-lg transition ${
                     visualizerService === s
                       ? 'bg-white text-slate-900 font-bold shadow-2xs'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  {s === 'gmail' ? 'Gmail' : s === 'm365' ? 'Microsoft 365' : s === 'slack' ? 'Slack' : s === 'github' ? 'GitHub' : 'PostgreSQL'}
+                  {s === 'gmail' ? 'Gmail' :
+                   s === 'm365' ? 'Microsoft 365' :
+                   s === 'slack' ? 'Slack' :
+                   s === 'github' ? 'GitHub' :
+                   s === 'postgres' ? 'PostgreSQL' :
+                   s === 'salesforce' ? 'Salesforce' : 'Notion'}
                 </button>
               ))}
             </div>
