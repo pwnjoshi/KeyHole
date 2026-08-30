@@ -942,7 +942,9 @@ app.post('/api/agent/run', async (req: Request, res: Response): Promise<void> =>
 
     // Extract semantic search query from prompt
     let searchQuery = '';
-    if (lowerPrompt.includes('invoice') || lowerPrompt.includes('receipt') || lowerPrompt.includes('billing')) {
+    if (lowerPrompt.includes('today')) {
+      searchQuery = 'newer_than:1d';
+    } else if (lowerPrompt.includes('invoice') || lowerPrompt.includes('receipt') || lowerPrompt.includes('billing')) {
       searchQuery = 'invoice OR receipt OR billing OR payment';
     } else if (lowerPrompt.includes('applicant') || lowerPrompt.includes('candidate') || lowerPrompt.includes('resume') || lowerPrompt.includes('hiring') || lowerPrompt.includes('job')) {
       searchQuery = 'applicant OR candidate OR resume OR hiring OR job';
@@ -950,7 +952,7 @@ app.post('/api/agent/run', async (req: Request, res: Response): Promise<void> =>
       searchQuery = 'security OR alert OR verify OR warning OR threat';
     } else if (lowerPrompt.includes('newsletter') || lowerPrompt.includes('digest') || lowerPrompt.includes('update')) {
       searchQuery = 'newsletter OR digest OR updates OR community';
-    } else {
+    } else if (!lowerPrompt.includes('all') && !lowerPrompt.includes('inbox')) {
       const brands = ['sunra', 'evernote', 'google', 'aws', 'amazon', 'github', 'stripe', 'vercel'];
       const matched = brands.filter(b => lowerPrompt.includes(b));
       if (matched.length > 0) searchQuery = matched.join(' OR ');
