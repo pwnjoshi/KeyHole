@@ -39,7 +39,7 @@ interface AgentStudioProps {
 export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
   const [selectedConnectionId, setSelectedConnectionId] = useState(policies[0]?.id || 'conn_receipts_bot');
   const [prompt, setPrompt] = useState('Extract all recent SaaS and cloud infrastructure receipts for my monthly expense audit.');
-  const [model, setModel] = useState('GPT-4o (Keyhole Shielded)');
+  const [model, setModel] = useState('Midnight Compact Prover Engine (ZK Verified)');
   const [isRunning, setIsRunning] = useState(false);
   const [executionResult, setExecutionResult] = useState<any>(null);
   const [selectedProof, setSelectedProof] = useState<any>(null);
@@ -48,6 +48,36 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
   const [isSwarmRunning, setIsSwarmRunning] = useState(false);
   const [swarmResults, setSwarmResults] = useState<any[]>([]);
   const navigate = useNavigate();
+
+  const renderFormattedAgentResponse = (text: string) => {
+    if (!text) return null;
+    const lines = text.split('\n');
+    return (
+      <div className="space-y-1.5 font-sans text-xs">
+        {lines.map((line, idx) => {
+          if (!line.trim()) return <div key={idx} className="h-1.5" />;
+          
+          const parts = line.split(/(\*\*.*?\*\*|`.*?`|\*.*?\*)/g);
+          return (
+            <p key={idx} className="leading-relaxed text-slate-200">
+              {parts.map((part, pIdx) => {
+                if (part.startsWith('**') && part.endsWith('**')) {
+                  return <strong key={pIdx} className="text-white font-bold">{part.slice(2, -2)}</strong>;
+                }
+                if (part.startsWith('`') && part.endsWith('`')) {
+                  return <code key={pIdx} className="px-1.5 py-0.5 rounded bg-slate-800 text-indigo-300 font-mono text-[11px] border border-slate-700">{part.slice(1, -1)}</code>;
+                }
+                if (part.startsWith('*') && part.endsWith('*')) {
+                  return <span key={pIdx} className="text-slate-400 italic text-[11px]">{part.slice(1, -1)}</span>;
+                }
+                return <span key={pIdx}>{part}</span>;
+              })}
+            </p>
+          );
+        })}
+      </div>
+    );
+  };
 
   const quickPrompts = [
     {
@@ -265,9 +295,9 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
                 onChange={(e) => setModel(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-indigo-500 transition"
               >
+                <option value="Midnight Compact Prover Engine (ZK Verified)">Midnight Compact Prover Engine (ZK Verified)</option>
                 <option value="GPT-4o (Keyhole Shielded)">GPT-4o (Keyhole Shielded)</option>
                 <option value="Claude 3.5 Sonnet (Keyhole Shielded)">Claude 3.5 Sonnet (Keyhole Shielded)</option>
-                <option value="Midnight Agent Prover Engine">Midnight Agent Prover Engine</option>
               </select>
             </div>
           </div>
@@ -469,43 +499,43 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
                       </div>
                     )}
 
-                    {/* Data Source Transparency Banner */}
+                    {/* Data Source Transparency Indicator */}
                     {executionResult.isLiveSource ? (
-                      <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center justify-between font-mono">
-                        <div className="flex items-center space-x-1.5 font-bold">
+                      <div className="px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center justify-between font-semibold">
+                        <div className="flex items-center space-x-1.5">
                           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                          <span>Data Source: LIVE CONNECTED ACCOUNT (Real Google/SaaS API)</span>
+                          <span>Live Connected Account</span>
                         </div>
-                        <span className="text-[10px] text-emerald-700 font-sans">Live OAuth Active</span>
+                        <span className="text-[10px] font-mono text-emerald-700 uppercase font-bold">Google API Active</span>
                       </div>
                     ) : (
-                      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <div className="flex items-center space-x-1.5 font-mono text-[11px]">
+                      <div className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs flex items-center justify-between">
+                        <div className="flex items-center space-x-1.5">
                           <span className="w-2 h-2 rounded-full bg-amber-500" />
-                          <span className="font-bold text-slate-700">Data Source: Sandbox Evaluation Dataset</span>
-                          <span className="text-slate-400 font-sans">(Live OAuth not configured)</span>
+                          <span className="font-semibold text-slate-800">Sandbox Dataset</span>
+                          <span className="text-[11px] text-slate-400 hidden sm:inline">(Live OAuth unconfigured)</span>
                         </div>
                         <button
                           onClick={() => navigate('/integrations')}
-                          className="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold border border-indigo-200 transition flex items-center space-x-1 self-start sm:self-auto"
+                          className="text-indigo-600 hover:text-indigo-700 font-semibold text-xs flex items-center space-x-1"
                         >
-                          <span>Connect Live Account in Hub</span>
+                          <span>Connect Account</span>
                           <ArrowRight className="w-3 h-3" />
                         </button>
                       </div>
                     )}
 
                     {/* Agent Thought Trace */}
-                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-[11px] text-slate-700 space-y-1">
-                      <span className="text-[10px] text-slate-400 uppercase font-sans font-bold block">Agent Internal Thought:</span>
-                      <p>{executionResult.agentThought}</p>
+                    <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 font-mono text-[11px] text-slate-700 space-y-0.5">
+                      <span className="text-[10px] text-slate-400 uppercase font-sans font-bold block">Internal Policy Execution:</span>
+                      <p className="text-slate-800">{executionResult.agentThought}</p>
                     </div>
 
                     {/* Final Sanitized Output */}
                     <div className="space-y-1">
                       <span className="text-[10px] text-slate-400 uppercase font-sans font-bold block">Final Agent Output:</span>
-                      <div className="p-3.5 rounded-xl bg-slate-900 text-slate-100 font-mono text-xs whitespace-pre-wrap leading-relaxed max-h-[200px] overflow-y-auto">
-                        {executionResult.agentResponse}
+                      <div className="p-3.5 rounded-xl bg-slate-900 text-slate-100 text-xs leading-relaxed max-h-[220px] overflow-y-auto space-y-2">
+                        {renderFormattedAgentResponse(executionResult.agentResponse)}
                       </div>
                     </div>
 

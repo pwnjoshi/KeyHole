@@ -984,64 +984,49 @@ app.post('/api/agent/run', async (req: Request, res: Response): Promise<void> =>
     const executionLatencyMs = Date.now() - startTime;
     const records = queryResult.data || [];
     const isLive = !!queryResult.isLiveSource;
-    const sourceLabel = isLive ? '🟢 LIVE ACCOUNT' : '🧪 SANDBOX SIMULATION';
     
-    let agentThought = `[${sourceLabel}] I queried the ${policy.connectorId.toUpperCase()} service via Keyhole Gateway with declared scope [${policy.allowedFields.join(', ')}].` +
-      (!isLive ? ' (Note: Live OAuth is not configured; using verified sandbox dataset. Connect your real account in Integrations Hub to query your live inbox).' : '');
-    
+    const agentThought = `Querying ${policy.connectorId.toUpperCase()} with declared scope [${policy.allowedFields.join(', ')}].`;
     let agentResponse = '';
 
     if (records.length === 0) {
-      agentResponse = `No records matching the query parameters were found in the ${isLive ? 'connected live' : 'sandbox'} service.`;
+      agentResponse = `No matching records found in ${policy.connectorId.toUpperCase()}.`;
     } else if (policy.connectorId === 'gmail') {
-      agentResponse = (isLive ? `[🟢 Live Gmail Inbox Query]\n\n` : `[🧪 Sandbox Evaluation Dataset — Live Gmail Not Connected]\n*(To query your actual live Gmail inbox, connect OAuth in Integrations Hub)*\n\n`) +
-        `Summary of matching emails (scoped strictly by Keyhole ZK policy):\n\n` +
-        records.map((r: any, idx: number) => {
-          let item = `${idx + 1}. **${r.subject || 'No Subject'}**\n   - **From:** \`${r.sender || 'Unknown'}\`\n   - **Date:** ${r.date ? new Date(r.date).toLocaleDateString() : 'N/A'}`;
-          const amountMatch = (r.subject || '').match(/(\$[\d,]+(?:\.\d{2})?|\b\d+\s*USD\b)/i);
-          if (amountMatch) {
-            item += `\n   - **Payment / Invoice Amount:** \`${amountMatch[1]}\``;
-          }
-          if (r.snippet) {
-            item += `\n   - **Safe Summary Snippet:** "${r.snippet}"`;
-          }
-          if (r.body) {
-            item += `\n   - **Full Body:** "${r.body.substring(0, 100)}..."`;
-          } else {
-            item += `\n   - **Body Protection:** 🛡️ *Confidential message body & attachments ZK-shielded (0 private bytes exposed)*`;
-          }
-          return item;
-        }).join('\n\n');
+      agentResponse = records.map((r: any, idx: number) => {
+        let item = `${idx + 1}. **${r.subject || 'No Subject'}**\n   - **From:** \`${r.sender || 'Unknown'}\`\n   - **Date:** ${r.date ? new Date(r.date).toLocaleDateString() : 'N/A'}`;
+        const amountMatch = (r.subject || '').match(/(\$[\d,]+(?:\.\d{2})?|\b\d+\s*USD\b)/i);
+        if (amountMatch) {
+          item += `\n   - **Invoice Amount:** \`${amountMatch[1]}\``;
+        }
+        if (r.snippet) {
+          item += `\n   - **Snippet:** "${r.snippet}"`;
+        }
+        if (r.body) {
+          item += `\n   - **Full Body:** "${r.body.substring(0, 100)}..."`;
+        } else {
+          item += `\n   - **Body Protection:** *Confidential body & attachments ZK-shielded (0 private bytes exposed)*`;
+        }
+        return item;
+      }).join('\n\n');
     } else if (policy.connectorId === 'gcal') {
-      agentResponse = (isLive ? `[🟢 Live Google Calendar]\n\n` : `[🧪 Sandbox Evaluation Dataset — Live Calendar Not Connected]\n\n`) +
-        `Here are the scheduled calendar events:\n\n` +
-        records.map((r: any, idx: number) =>
-          `${idx + 1}. **${r.title || 'Untitled Event'}**\n   - Time: ${r.start_time ? new Date(r.start_time).toLocaleString() : 'N/A'}\n   - Attendees: ${r.attendee_count ?? 'N/A'}`
-        ).join('\n\n');
+      agentResponse = records.map((r: any, idx: number) =>
+        `${idx + 1}. **${r.title || 'Untitled Event'}**\n   - **Time:** ${r.start_time ? new Date(r.start_time).toLocaleString() : 'N/A'}\n   - **Attendees:** ${r.attendee_count ?? 'N/A'}`
+      ).join('\n\n');
     } else if (policy.connectorId === 'm365') {
-      agentResponse = (isLive ? `[🟢 Live M365 Outlook]\n\n` : `[🧪 Sandbox Evaluation Dataset — Live M365 Not Connected]\n\n`) +
-        `Here are the Microsoft 365 Outlook invoice summaries (body text and attachments ZK masked):\n\n` +
-        records.map((r: any, idx: number) =>
-          `${idx + 1}. **${r.subject || 'No Subject'}**\n   - From: \`${r.from || 'Unknown'}\`\n   - Received: ${r.received_time ? new Date(r.received_time).toLocaleString() : 'N/A'}`
-        ).join('\n\n');
+      agentResponse = records.map((r: any, idx: number) =>
+        `${idx + 1}. **${r.subject || 'No Subject'}**\n   - **From:** \`${r.from || 'Unknown'}\`\n   - **Received:** ${r.received_time ? new Date(r.received_time).toLocaleString() : 'N/A'}`
+      ).join('\n\n');
     } else if (policy.connectorId === 'slack') {
-      agentResponse = (isLive ? `[🟢 Live Slack Workspace]\n\n` : `[🧪 Sandbox Evaluation Dataset — Live Slack Not Connected]\n\n`) +
-        `Here is the Slack channel digest (executive threads and DMs excluded):\n\n` +
-        records.map((r: any, idx: number) =>
-          `${idx + 1}. Channel: **${r.channel_name}** | Sender: \`${r.sender_name}\`\n   - Timestamp: ${r.timestamp ? new Date(r.timestamp).toLocaleTimeString() : 'N/A'}`
-        ).join('\n\n');
+      agentResponse = records.map((r: any, idx: number) =>
+        `${idx + 1}. **${r.channel_name}** | **Sender:** \`${r.sender_name}\`\n   - **Time:** ${r.timestamp ? new Date(r.timestamp).toLocaleTimeString() : 'N/A'}`
+      ).join('\n\n');
     } else if (policy.connectorId === 'github') {
-      agentResponse = (isLive ? `[🟢 Live GitHub Enterprise]\n\n` : `[🧪 Sandbox Evaluation Dataset — Live GitHub Not Connected]\n\n`) +
-        `Here is the GitHub repository issue triage (source code blobs and secrets masked):\n\n` +
-        records.map((r: any, idx: number) =>
-          `${idx + 1}. **${r.issue_title}** (\`${r.repo_name}\`)\n   - Author: @${r.author} | State: \`${r.state}\``
-        ).join('\n\n');
+      agentResponse = records.map((r: any, idx: number) =>
+        `${idx + 1}. **${r.issue_title}** (\`${r.repo_name}\`)\n   - **Author:** @${r.author} | **State:** \`${r.state}\``
+      ).join('\n\n');
     } else if (policy.connectorId === 'postgres') {
-      agentResponse = (isLive ? `[🟢 Live PostgreSQL Database]\n\n` : `[🧪 Sandbox Evaluation Dataset — Live DB Not Connected]\n\n`) +
-        `Here are the sanitized PostgreSQL customer tier records (PII, salaries, and credit cards redacted):\n\n` +
-        records.map((r: any, idx: number) =>
-          `${idx + 1}. Record ID: \`${r.row_id}\`\n   - Tier: **${r.customer_tier}**\n   - Status: \`${r.subscription_status}\`\n   - Region: ${r.region}`
-        ).join('\n\n');
+      agentResponse = records.map((r: any, idx: number) =>
+        `${idx + 1}. **Record #${r.row_id}**\n   - **Tier:** ${r.customer_tier} | **Status:** \`${r.subscription_status}\` | **Region:** ${r.region}`
+      ).join('\n\n');
     }
 
     const sampleRecord = records[0] || {
