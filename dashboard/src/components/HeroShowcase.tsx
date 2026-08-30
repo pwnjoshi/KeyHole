@@ -683,7 +683,7 @@ curl -X POST ${effectiveGatewayUrl}/api/agent/run \\
         <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
           <div className="flex items-center space-x-2 text-xs text-slate-400">
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>Hardware-isolated proof generation &bull; Sub-12ms execution latency</span>
+            <span>Cryptographic proof generation &bull; Single-digit-millisecond median latency</span>
           </div>
           <button
             onClick={() => navigate('/docs')}
@@ -755,7 +755,7 @@ curl -X POST ${effectiveGatewayUrl}/api/agent/run \\
             },
             {
               q: "Does Keyhole add latency to autonomous agent execution?",
-              a: "No. Keyhole's prover runs in sub-12 milliseconds hardware-isolated execution, ensuring real-time streaming to LLMs (OpenAI, Anthropic, DeepSeek) without bottlenecking multi-agent reasoning chains."
+              a: "Minimal. Keyhole's ZK prover circuit runs with a median latency of ~7ms and a mean of ~10ms in benchmarks — well under a round-trip to any upstream API. It does not bottleneck multi-agent reasoning chains or real-time LLM streaming."
             },
             {
               q: "How does the Active Canary Honeypot quarantine rogue agents?",

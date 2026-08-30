@@ -93,5 +93,5 @@ Comprehensive chronological record of architectural milestones, engineering impl
 * **Production Custom Domain**: `https://keyhole.techsangi.com.np`
 * **App Runner Direct**: `https://puvyfpwdq6.us-east-1.awsapprunner.com`
 * **Health Check**: `GET /api/health` -> Status `healthy`
-* **Midnight Prover Latency**: `< 12ms` hardware-isolated execution
+* **Midnight Prover Latency**: `p50 ~7ms · mean ~10ms · p95 ~22ms` (50-run benchmark, `generateScopeProof()` circuit path)
 * **Test Suite Status**: 31 / 31 Automated Checks Passing (100% Pass Rate)

@@ -263,7 +263,7 @@ curl -X POST ${effectiveGatewayUrl}/api/agent/run \\
 
             <div className="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed">
               <p>
-                Unlike client-side sanitizers that rely on prompt engineering, Keyhole enforces a <strong>hardware-isolated mathematical perimeter</strong> in 4 distinct stages:
+                Unlike client-side sanitizers that rely on prompt engineering, Keyhole enforces a <strong>cryptographic mathematical perimeter</strong> in 4 distinct stages:
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">

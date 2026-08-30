@@ -9,7 +9,7 @@
 [![Database](https://img.shields.io/badge/Database-Supabase_PostgreSQL-3ecf8e?style=flat-square)](https://supabase.com)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square)](LICENSE)
 
-Keyhole is a Zero-Knowledge runtime security perimeter and cryptographic scope enforcer for autonomous AI agents. Keyhole intercepts agent tool invocations across 9 enterprise systems (Google Workspace, Microsoft 365, Slack Enterprise, GitHub, PostgreSQL, Salesforce, Notion, Custom REST Webhooks), redacts confidential message bodies, credentials, and personally identifiable information (PII) server-side, and generates sub-12ms Zero-Knowledge proofs on Midnight verifying mathematically that the agent never accessed data outside its declared policy scope.
+Keyhole is a Zero-Knowledge runtime security perimeter and cryptographic scope enforcer for autonomous AI agents. Keyhole intercepts agent tool invocations across 9 enterprise systems (Google Workspace, Microsoft 365, Slack Enterprise, GitHub, PostgreSQL, Salesforce, Notion, Custom REST Webhooks), redacts confidential message bodies, credentials, and personally identifiable information (PII) server-side, and generates Zero-Knowledge proofs on Midnight (median ~7ms, mean ~10ms) verifying mathematically that the agent never accessed data outside its declared policy scope.
 
 ---
 
@@ -193,7 +193,7 @@ const response = await openai.chat.completions.create({
 Keyhole is built in strict alignment with the Midnight Hackathon technical guidelines:
 
 1. **Standalone Compact Runtime Execution**:
-   Keyhole implements standalone Compact runtime execution via `@midnight-ntwrk/compact-runtime` and local devnet compatibility, guaranteeing sub-12ms execution without public testnet faucet cooldown bottlenecks.
+   Keyhole implements standalone Compact runtime execution via `@midnight-ntwrk/compact-runtime` and local devnet compatibility, achieving single-digit-millisecond median proof latency (p50 ~7ms, mean ~10ms) without public testnet faucet cooldown bottlenecks.
 2. **Compact Smart Contracts (`.compact`) and ZKIR Opcode Compilation**:
    * `contracts/scope-policy.compact` (Core Subset Verification: `(response & ~allowed) == 0`)
    * `contracts/scope-policy-v2.compact` (Multi-SaaS Volume and Recency Circuit)

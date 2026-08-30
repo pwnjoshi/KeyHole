@@ -114,13 +114,21 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Copyright & Ledger Info */}
+        {/* Bottom Copyright, Credits & Ledger Info */}
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <strong className="text-slate-900 font-bold">KEYHOLE</strong>
             <span>© 2026</span>
             <span>·</span>
             <span>All rights reserved.</span>
+            <span>·</span>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+              Beta Phase
+            </span>
+            <span>·</span>
+            <span className="inline-flex items-center text-slate-600">
+              Built with <span className="text-rose-500 mx-1 animate-pulse">❤️</span> by <a href="https://github.com/pwnjoshi" target="_blank" rel="noreferrer" className="ml-1 font-semibold text-slate-800 hover:text-indigo-600 hover:underline">Pawan</a>
+            </span>
           </div>
 
           <div className="flex items-center space-x-3 font-mono text-[11px] text-slate-500">

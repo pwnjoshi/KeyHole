@@ -16,11 +16,11 @@ const ROUTE_SEO: Record<string, { title: string; description: string }> = {
   },
   '/about': {
     title: 'Technical Whitepaper & Architecture Specs | Keyhole',
-    description: 'Deep dive into Keyhole zero-trust architecture, hardware-isolated mathematical privacy perimeters, and Midnight blockchain anchoring.'
+    description: 'Deep dive into Keyhole zero-trust architecture, cryptographic mathematical privacy perimeters, and Midnight blockchain anchoring.'
   },
   '/circuit': {
     title: 'Midnight ZK Circuit Prover & ZKIR Explorer | Keyhole',
-    description: 'Interactive mathematical circuit compiler, bitmask violation calculator, and sub-12ms Midnight prover latency benchmarks.'
+    description: 'Interactive mathematical circuit compiler, bitmask violation calculator, and real Midnight Compact prover latency benchmarks (p50: ~7ms, mean: ~10ms).'
   },
   '/integrations': {
     title: 'Enterprise Connectors & 1-Click OAuth (8 Ready) | Keyhole',
