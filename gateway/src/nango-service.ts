@@ -30,6 +30,23 @@ export class NangoService {
     return !!this.secretKey && this.secretKey.length > 5;
   }
 
+  public mapServiceToNangoSlug(serviceId: string): string {
+    const map: Record<string, string> = {
+      'google_workspace': 'google-mail',
+      'gmail': 'google-mail',
+      'gcal': 'google-calendar',
+      'google-calendar': 'google-calendar',
+      'slack': 'slack',
+      'github': 'github-getting-started',
+      'microsoft_365': 'microsoft',
+      'microsoft': 'microsoft',
+      'notion': 'notion',
+      'salesforce': 'salesforce',
+      'outlook': 'outlook'
+    };
+    return map[serviceId] || serviceId;
+  }
+
   /**
    * Create a 1-Click Connect Session for end users.
    * Generates a hosted Nango connect link / modal session token.
@@ -48,8 +65,19 @@ export class NangoService {
       }
     };
 
-    if (integrationKey) {
-      payload.allowed_integrations = [integrationKey];
+    if (integrationKey && integrationKey !== 'all') {
+      const slug = this.mapServiceToNangoSlug(integrationKey);
+      payload.allowed_integrations = [slug];
+    } else {
+      payload.allowed_integrations = [
+        'google-mail',
+        'google-calendar',
+        'slack',
+        'github-getting-started',
+        'microsoft',
+        'notion',
+        'salesforce'
+      ];
     }
 
     const response = await fetch(`${this.baseUrl}/connect/sessions`, {

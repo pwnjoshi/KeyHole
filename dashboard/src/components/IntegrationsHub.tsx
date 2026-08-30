@@ -445,6 +445,10 @@ export const IntegrationsHub: React.FC = () => {
   };
 
   const handleConnectNango = async () => {
+    return handleConnectNangoForService('google-mail');
+  };
+
+  const handleConnectNangoForService = async (serviceId: string) => {
     setIsConnectingNango(true);
     setErrorMessage(null);
     try {
@@ -454,7 +458,7 @@ export const IntegrationsHub: React.FC = () => {
         body: JSON.stringify({
           email: 'joshipawan2021@gmail.com',
           name: 'Pawan Joshi',
-          integrationKey: 'google'
+          integrationKey: serviceId
         })
       });
       const data = await res.json();
@@ -475,8 +479,14 @@ export const IntegrationsHub: React.FC = () => {
               const syncRes = await fetch('/api/nango/sync', { method: 'POST' });
               await syncRes.json();
               fetchStatus();
+              const updated = {
+                ...connectedServices,
+                [serviceId]: { connected: true, identifier: 'Connected via Nango', isLive: true }
+              };
+              setConnectedServices(updated);
+              localStorage.setItem('keyhole_connected_services', JSON.stringify(updated));
               setSelectedServiceForModal(null);
-              showSuccess('Google Workspace successfully connected via Nango 1-Click!');
+              showSuccess(`Successfully connected via Nango 1-Click!`);
             } catch {}
             setIsConnectingNango(false);
           }
@@ -1171,6 +1181,51 @@ export const IntegrationsHub: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-4 pt-2">
+                  {/* Nango 1-Click Option for Supported Connectors */}
+                  {['slack', 'github', 'notion', 'salesforce', 'microsoft_365'].includes(selectedServiceForModal.id) && (
+                    <div className="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-slate-50 border border-indigo-200/80 space-y-2.5 shadow-2xs">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                          <span className="font-bold text-xs text-slate-900">1-Click Managed OAuth (Powered by Nango)</span>
+                        </div>
+                        <span className="text-[9px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                          Zero Setup
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 leading-relaxed">
+                        Connect your live <strong>{selectedServiceForModal.name}</strong> account directly using Nango's pre-verified enterprise integration.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handleConnectNangoForService(selectedServiceForModal.id)}
+                        disabled={isConnectingNango}
+                        className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-bold text-xs transition shadow-xs flex items-center justify-center space-x-2"
+                      >
+                        {isConnectingNango ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            <span>Opening Connect Popup...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-3.5 h-3.5 text-indigo-200" />
+                            <span>1-Click Connect {selectedServiceForModal.name}</span>
+                            <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {['slack', 'github', 'notion', 'salesforce', 'microsoft_365'].includes(selectedServiceForModal.id) && (
+                    <div className="relative flex py-0.5 items-center">
+                      <div className="flex-grow border-t border-slate-200" />
+                      <span className="flex-shrink mx-3 text-[10px] uppercase font-bold text-slate-400">Or Provide Custom Keys</span>
+                      <div className="flex-grow border-t border-slate-200" />
+                    </div>
+                  )}
+
                   <div>
                     <label className="block text-slate-700 font-semibold text-xs mb-1">
                       {selectedServiceForModal.id === 'postgres'
