@@ -956,12 +956,26 @@ app.post('/api/agent/run', async (req: Request, res: Response): Promise<void> =>
       if (matched.length > 0) searchQuery = matched.join(' OR ');
     }
 
+    // Extract dynamic record count from prompt if specified (e.g., "scan 10 emails", "show 15 records")
+    let requestedCount = 10;
+    const countMatch = lowerPrompt.match(/(?:scan|fetch|show|list|get|check)\s+(\d{1,2})\s+(?:emails?|records?|messages?|items?|invoices?)/i)
+      || lowerPrompt.match(/(\d{1,2})\s+(?:emails?|records?|messages?|items?)/i);
+    if (countMatch && countMatch[1]) {
+      const parsed = parseInt(countMatch[1], 10);
+      if (parsed > 0 && parsed <= 50) {
+        requestedCount = parsed;
+      }
+    }
+
     // Execute via Keyhole Perimeter Engine
     const startTime = Date.now();
     const queryResult = await policyEngine.executeQuery({
       connectionId: targetConnId,
       requestedFields,
-      params: { maxResults: 5, query: searchQuery || undefined },
+      params: { 
+        maxResults: Math.min(requestedCount, policy.maxMessageCount || 20), 
+        query: searchQuery || undefined 
+      },
       clientIp
     });
 
