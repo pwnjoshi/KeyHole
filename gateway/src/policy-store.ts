@@ -42,6 +42,9 @@ export class PolicyStore {
 
   private async syncFromSupabase(): Promise<void> {
     try {
+      // Seed/upsert all rich enterprise policies into Supabase
+      await this.seedDefaultPolicies();
+
       const { data, error } = await supabase.from('policies').select('*').order('created_at', { ascending: false });
       if (!error && data && data.length > 0) {
         for (const r of data) {
@@ -50,10 +53,6 @@ export class PolicyStore {
         }
         this.initialized = true;
         console.log(`[Supabase PolicyStore] Synchronized ${data.length} policies from cloud DB.`);
-      } else if (!error && (!data || data.length === 0)) {
-        // Seed default policies into Supabase if empty
-        console.log('[Supabase PolicyStore] Database empty, seeding initial policies to Supabase...');
-        await this.seedDefaultPolicies();
       }
     } catch (e: any) {
       console.warn('[Supabase PolicyStore] Sync warning:', e.message);

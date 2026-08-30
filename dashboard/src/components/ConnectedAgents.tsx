@@ -1,7 +1,18 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { HugeShieldIcon, HugeBotIcon, HugeCheckCircleIcon, HugePlayIcon } from './HugeIcons.tsx';
-import { Plus, Edit2, ShieldAlert, Sparkles, RefreshCw, Mail, Calendar, Layers } from 'lucide-react';
+import { HugeShieldIcon, HugeBotIcon, HugeCheckCircleIcon } from './HugeIcons.tsx';
+import {
+  Plus,
+  Edit2,
+  ShieldAlert,
+  Mail,
+  Calendar,
+  Layers,
+  Search,
+  Database,
+  GitBranch,
+  Filter
+} from 'lucide-react';
 import { ScopePolicy } from '../types.ts';
 import { SkeletonCard } from './SkeletonLoader.tsx';
 
@@ -22,6 +33,34 @@ export const ConnectedAgents: React.FC<ConnectedAgentsProps> = ({
   isTesting,
   isLoading = false
 }) => {
+  const [selectedService, setSelectedService] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  const services = [
+    { id: 'all', label: 'All Services' },
+    { id: 'gmail', label: 'Gmail' },
+    { id: 'gcal', label: 'Google Calendar' },
+    { id: 'm365', label: 'Microsoft 365' },
+    { id: 'slack', label: 'Slack' },
+    { id: 'github', label: 'GitHub' },
+    { id: 'postgres', label: 'PostgreSQL' },
+    { id: 'salesforce', label: 'Salesforce' },
+    { id: 'notion', label: 'Notion' },
+    { id: 'custom_rest', label: 'Custom REST' }
+  ];
+
+  const filteredPolicies = useMemo(() => {
+    return policies.filter(policy => {
+      const matchesService = selectedService === 'all' || policy.connectorId === selectedService;
+      const matchesSearch = !searchQuery.trim() || 
+        policy.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        policy.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        policy.connectorId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        policy.allowedFields.some(f => f.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchesService && matchesSearch;
+    });
+  }, [policies, selectedService, searchQuery]);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -30,6 +69,9 @@ export const ConnectedAgents: React.FC<ConnectedAgentsProps> = ({
           <div className="flex items-center space-x-2">
             <HugeShieldIcon size={22} className="text-indigo-600" />
             <h2 className="text-xl font-bold text-slate-900 tracking-tight">Active Agent Scope Policies</h2>
+            <span className="px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-mono font-bold">
+              {policies.length} Policies Active
+            </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
             Cryptographic field allowlists enforced by the Keyhole Gateway and verified by Midnight ZK circuits.
@@ -55,6 +97,51 @@ export const ConnectedAgents: React.FC<ConnectedAgentsProps> = ({
         </div>
       </div>
 
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-2xs">
+        {/* Service Pills */}
+        <div className="flex items-center space-x-1 overflow-x-auto pb-1 md:pb-0 scrollbar-thin">
+          {services.map(svc => {
+            const count = svc.id === 'all' 
+              ? policies.length 
+              : policies.filter(p => p.connectorId === svc.id).length;
+            
+            if (svc.id !== 'all' && count === 0) return null;
+
+            return (
+              <button
+                key={svc.id}
+                onClick={() => setSelectedService(svc.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition whitespace-nowrap flex items-center space-x-1.5 ${
+                  selectedService === svc.id
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <span>{svc.label}</span>
+                <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                  selectedService === svc.id ? 'bg-slate-800 text-indigo-200' : 'bg-slate-100 text-slate-500'
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Search Input */}
+        <div className="relative w-full md:w-64 flex-shrink-0">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search policies or fields..."
+            className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-500 font-sans"
+          />
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+        </div>
+      </div>
+
       {/* Grid of Policies */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -62,11 +149,21 @@ export const ConnectedAgents: React.FC<ConnectedAgentsProps> = ({
           <SkeletonCard />
           <SkeletonCard />
         </div>
+      ) : filteredPolicies.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-8 space-y-2">
+          <Filter className="w-8 h-8 text-slate-300 mx-auto" />
+          <h3 className="text-sm font-bold text-slate-800">No policies found</h3>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            No active scope policies match your selected filter or search criteria.
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {policies.map((policy) => {
+          {filteredPolicies.map((policy) => {
             const isGmail = policy.connectorId === 'gmail';
             const isGCal = policy.connectorId === 'gcal';
+            const isDb = policy.connectorId === 'postgres';
+            const isGit = policy.connectorId === 'github';
 
             return (
               <div
@@ -78,7 +175,11 @@ export const ConnectedAgents: React.FC<ConnectedAgentsProps> = ({
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-2.5">
                       <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100">
-                        {isGmail ? <Mail className="w-4 h-4" /> : isGCal ? <Calendar className="w-4 h-4" /> : <HugeBotIcon size={18} />}
+                        {isGmail ? <Mail className="w-4 h-4" /> :
+                         isGCal ? <Calendar className="w-4 h-4" /> :
+                         isDb ? <Database className="w-4 h-4" /> :
+                         isGit ? <GitBranch className="w-4 h-4" /> :
+                         <HugeBotIcon size={18} />}
                       </div>
                       <div>
                         <span className="text-[10px] font-mono text-slate-400 uppercase font-bold tracking-wider">

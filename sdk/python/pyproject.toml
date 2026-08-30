@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "keyhole-shield"
+version = "1.0.0"
+description = "Universal Zero-Knowledge Privacy Perimeter and Tool Wrapper for AI Agents on Midnight"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "requests>=2.28.0",
+    "pydantic>=1.10.0"
+]

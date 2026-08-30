@@ -25,7 +25,13 @@ import {
   KeyRound,
   Database,
   Mail,
-  GitBranch
+  GitBranch,
+  Code2,
+  Copy,
+  Check,
+  HelpCircle,
+  ChevronDown,
+  ShieldCheck
 } from 'lucide-react';
 
 export const HeroShowcase: React.FC = () => {
@@ -33,6 +39,14 @@ export const HeroShowcase: React.FC = () => {
   const [activeAttackScenario, setActiveAttackScenario] = useState<'injection' | 'm365_leak' | 'slack_dm' | 'db_credit_card' | 'compliant'>('injection');
   const [visualizerService, setVisualizerService] = useState<'gmail' | 'm365' | 'slack' | 'github' | 'postgres'>('gmail');
   const [scrollY, setScrollY] = useState(0);
+  const [heroSdkTab, setHeroSdkTab] = useState<'python' | 'typescript' | 'curl'>('python');
+  const [copiedHeroSdk, setCopiedHeroSdk] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  const effectiveGatewayUrl = typeof window !== 'undefined' 
+    ? (window.location.origin.includes('localhost') ? 'http://localhost:4000' : window.location.origin)
+    : 'https://keyhole.techsangi.com.np';
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -553,6 +567,223 @@ export const HeroShowcase: React.FC = () => {
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
+        </div>
+      </div>
+
+
+      {/* 6. Universal 1-Line Drop-in Agent SDK Section */}
+      <div className="relative z-10 bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl text-slate-100 space-y-6 overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-indigo-400 block mb-1">
+              Universal Agent SDK &bull; 1-Line Drop-in
+            </span>
+            <h2 className="text-xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Secure Any Autonomous Agent in 60 Seconds
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
+              Wrap LangChain, CrewAI, AutoGen, or OpenAI tools with a single line. Keyhole automatically enforces least-privilege boundaries and Midnight ZK proofs.
+            </p>
+          </div>
+
+          <div className="flex items-center space-x-1.5 bg-slate-950 p-1.5 rounded-xl border border-slate-800 self-start md:self-auto">
+            {(['python', 'typescript', 'curl'] as const).map((lang) => (
+              <button
+                key={lang}
+                onClick={() => setHeroSdkTab(lang)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition ${
+                  heroSdkTab === lang
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {lang === 'python' ? 'Python (CrewAI/LangChain)' : lang === 'typescript' ? 'TypeScript (OpenAI)' : 'REST / cURL'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative bg-slate-950 border border-slate-800 rounded-2xl p-4 sm:p-5 font-mono text-xs overflow-x-auto shadow-inner">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3 text-[11px] text-slate-400">
+            <span>{heroSdkTab === 'python' ? 'python · agent_shield.py' : heroSdkTab === 'typescript' ? 'typescript · agent.ts' : 'shell · terminal'}</span>
+            <button
+              onClick={() => {
+                const codeToCopy = heroSdkTab === 'python'
+                  ? `from keyhole import KeyholeShield\nfrom crewai import Agent\n\nshield = KeyholeShield(gateway_url="${effectiveGatewayUrl}", api_key="kh_live_xxx")\nagent = Agent(role="Expense Auditor", tools=shield.get_tools(["gmail", "m365", "slack"]), verbose=True)\nresult = agent.execute("Scan vendor receipts.")`
+                  : heroSdkTab === 'typescript'
+                  ? `import { KeyholeShield } from '@keyhole/sdk';\nconst shield = new KeyholeShield({ gatewayUrl: '${effectiveGatewayUrl}', apiKey: process.env.KEYHOLE_API_KEY });\nconst tools = await shield.getTools();`
+                  : `curl -X POST ${effectiveGatewayUrl}/api/agent/run -H "Content-Type: application/json" -d '{"prompt": "Scan invoices"}'`;
+                navigator.clipboard.writeText(codeToCopy);
+                setCopiedHeroSdk(true);
+                setTimeout(() => setCopiedHeroSdk(false), 2000);
+              }}
+              className="flex items-center space-x-1.5 text-xs text-indigo-400 hover:text-white transition font-sans"
+            >
+              {copiedHeroSdk ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedHeroSdk ? 'Copied!' : 'Copy Snippet'}</span>
+            </button>
+          </div>
+
+          <pre className="text-slate-200 leading-relaxed font-mono overflow-x-auto">
+{heroSdkTab === 'python' ? `# Install: pip install keyhole-shield crewai langchain
+from keyhole import KeyholeShield
+from crewai import Agent
+
+# 1. Universal 1-Line Drop-in: Auto-shields ALL enterprise tools
+# Policy allowlists are managed centrally in the Keyhole Console (0 agent code edits!)
+shield = KeyholeShield(
+    gateway_url="${effectiveGatewayUrl}",
+    api_key="kh_live_9f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5"
+)
+
+# 2. Bind auto-routing shielded tools to any autonomous agent
+agent = Agent(
+    role="Autonomous Enterprise Assistant",
+    goal="Audit invoices, triage GitHub PRs, and monitor Slack with 0 data leakage",
+    tools=shield.get_tools(["gmail", "m365", "slack", "github", "postgres"]),
+    verbose=True
+)
+
+# 3. Agent executes with sub-second Midnight ZK proofs anchored automatically!
+result = agent.execute("Scan recent vendor invoices.")
+print("Verified Data:", result.data)
+print("Midnight ZK Proof Tx:", result.proof.midnight_tx_id)`
+: heroSdkTab === 'typescript' ? `// Install: npm install @keyhole/sdk openai
+import { KeyholeShield } from '@keyhole/sdk';
+import OpenAI from 'openai';
+
+const openai = new OpenAI();
+
+// 1. Universal 1-Line Drop-in for all enterprise tools
+const shield = new KeyholeShield({
+  gatewayUrl: '${effectiveGatewayUrl}',
+  apiKey: process.env.KEYHOLE_API_KEY
+});
+
+// 2. Automatically load all active enterprise policies into OpenAI / LangChain tools
+const tools = await shield.getTools(); // Auto-discovers Gmail, M365, Slack, GitHub, Postgres
+
+// 3. AI Agent execution returns cryptographically proven records with 0 leakage
+const response = await openai.chat.completions.create({
+  model: 'gpt-4o',
+  messages: [{ role: 'user', content: 'Scan recent vendor invoices' }],
+  tools
+});`
+: `# Direct Keyhole Zero-Trust Gateway API Execution
+curl -X POST ${effectiveGatewayUrl}/api/agent/run \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer kh_live_9f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5" \\
+  -d '{
+    "connectionId": "auto",
+    "prompt": "Scan recent vendor invoices and return receipts."
+  }'`}
+          </pre>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+          <div className="flex items-center space-x-2 text-xs text-slate-400">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <span>Hardware-isolated proof generation &bull; Sub-12ms execution latency</span>
+          </div>
+          <button
+            onClick={() => navigate('/docs')}
+            className="text-xs font-bold text-indigo-400 hover:text-white transition flex items-center space-x-1"
+          >
+            <span>Explore Full SDK Reference & Architecture</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* 7. 9 Enterprise Connectors Ecosystem Showcase */}
+      <div className="relative z-10 space-y-6">
+        <div className="text-center max-w-2xl mx-auto px-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 block mb-1">
+            Enterprise Breadth
+          </span>
+          <h2 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            9 Pre-Built Enterprise Connectors
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Zero-knowledge field-level protection out-of-the-box for all your critical data systems.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[
+            { name: 'Google Gmail', desc: 'Permits sender, subject, date. Strips message bodies, credentials, and attachments.', tag: 'OAuth 2.0' },
+            { name: 'Google Calendar', desc: 'Permits meeting title, start/end time. Masks private agendas and notes.', tag: 'OAuth 2.0' },
+            { name: 'Microsoft 365 (Graph)', desc: 'Enterprise Outlook & Teams perimeter with automated Azure Graph redaction.', tag: 'Nango / MS Graph' },
+            { name: 'Slack Enterprise Grid', desc: 'Permits public channel metadata while locking private threads & DMs.', tag: 'Bot Token' },
+            { name: 'GitHub Enterprise', desc: 'Permits PR/Issue status while shielding proprietary source code & .env keys.', tag: 'App / PAT' },
+            { name: 'PostgreSQL SQL Proxy', desc: 'Column-level allowlist filtering for credit cards, salaries, and PII.', tag: 'SQL Interceptor' },
+            { name: 'Salesforce CRM', desc: 'Permits company and lead status while redacting contract terms & revenue.', tag: 'OAuth 2.0' },
+            { name: 'Notion & Wikis', desc: 'Permits page titles and authors while keeping confidential wiki text private.', tag: 'Internal Integration' },
+            { name: 'Custom REST / OpenAPI', desc: 'Generic webhook & microservice gateway with session token stripping.', tag: 'Bearer / HMAC' }
+          ].map((conn, idx) => (
+            <div key={idx} className="bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl p-5 shadow-card hover:shadow-card-hover transition-all duration-200 space-y-2.5 hover:-translate-y-1">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-slate-900 text-sm">{conn.name}</h3>
+                <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-100">
+                  {conn.tag}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {conn.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 8. Enterprise Architecture & FAQ Accordion */}
+      <div className="relative z-10 bg-white/95 backdrop-blur-md border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-card space-y-6">
+        <div className="text-center max-w-2xl mx-auto px-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 block mb-1">
+            Enterprise Security FAQ
+          </span>
+          <h2 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Frequently Asked Questions
+          </h2>
+        </div>
+
+        <div className="space-y-3 max-w-3xl mx-auto">
+          {[
+            {
+              q: "How does Keyhole guarantee the gateway isn't fabricating data?",
+              a: "Keyhole implements Two-Witness Cryptographic Upstream Binding in the Midnight Compact circuit. The SHA-256 hash of the authentic upstream TLS API response is bound as a private witness. The circuit mathematically verifies that delivered records are a direct masked subset of the real response."
+            },
+            {
+              q: "Does Keyhole add latency to autonomous agent execution?",
+              a: "No. Keyhole's prover runs in sub-12 milliseconds hardware-isolated execution, ensuring real-time streaming to LLMs (OpenAI, Anthropic, DeepSeek) without bottlenecking multi-agent reasoning chains."
+            },
+            {
+              q: "How does the Active Canary Honeypot quarantine rogue agents?",
+              a: "Keyhole injects cryptographic honeytokens into API parameters. If a prompt injection attempt attempts to exfiltrate unpermitted fields, the Canary Trap immediately issues an HTTP 423 session lock, quarantining the agent before data is accessed."
+            },
+            {
+              q: "Is confidential corporate data recorded on the blockchain?",
+              a: "Zero bytes of confidential data are ever recorded on-chain. Midnight's Zero-Knowledge architecture stores only state commitment roots and compliance booleans, providing cryptographic non-disclosure."
+            }
+          ].map((item, index) => {
+            const isOpen = openFaq === index;
+            return (
+              <div key={index} className="border border-slate-200 rounded-2xl overflow-hidden transition">
+                <button
+                  onClick={() => setOpenFaq(isOpen ? null : index)}
+                  className="w-full p-4 sm:p-5 text-left font-bold text-slate-800 text-xs sm:text-sm flex items-center justify-between hover:bg-slate-50 transition"
+                >
+                  <span>{item.q}</span>
+                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 flex-shrink-0 ml-2 ${isOpen ? 'rotate-180 text-indigo-600' : ''}`} />
+                </button>
+                {isOpen && (
+                  <div className="p-4 sm:p-5 pt-0 text-xs text-slate-600 leading-relaxed bg-slate-50/50 border-t border-slate-100">
+                    {item.a}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
