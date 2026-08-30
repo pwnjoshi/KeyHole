@@ -36,7 +36,7 @@ export const Footer: React.FC = () => {
 
             <div className="flex items-center space-x-2 text-xs font-semibold text-emerald-700">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-              <span>Midnight Network · Privacy-Preserving AI Track 2026</span>
+              <span>Enterprise Zero-Knowledge Perimeter · Verified on Midnight Network</span>
             </div>
           </div>
 

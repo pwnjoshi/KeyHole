@@ -208,7 +208,7 @@ export const HeroShowcase: React.FC = () => {
             <div className="lightning-beam" />
             <div className="lightning-pill-inner">
               <span className="bg-gradient-to-r from-indigo-700 via-purple-700 to-indigo-800 bg-clip-text text-transparent font-bold text-[11px] sm:text-xs tracking-wide">
-                Midnight Blockchain · Privacy-Preserving AI Track 2026
+                Enterprise AI Zero-Trust Gateway · Verified by Midnight ZK
               </span>
             </div>
           </div>
