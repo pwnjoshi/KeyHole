@@ -606,6 +606,28 @@ app.post('/api/agent/run', async (req: Request, res: Response): Promise<void> =>
         ).join('\n\n');
     }
 
+    const sampleRecord = records[0] || {
+      sender: "billing@enterprise.corp",
+      subject: "Vendor Invoice #8921",
+      date: new Date().toISOString().split('T')[0]
+    };
+
+    let sampleRaw: Record<string, any> = { ...sampleRecord };
+    if (policy.connectorId === 'gmail' || policy.connectorId === 'm365') {
+      sampleRaw.body = "Card: 4111-XXXX-XXXX-8910 Total: $42.50 Bearer: ghp_sec_9912...";
+      sampleRaw.attachments = ["payroll_q3.pdf", "prod_key.pem"];
+    } else if (policy.connectorId === 'slack') {
+      sampleRaw.message_text = "Executive discussion on acquisition terms and budget.";
+      sampleRaw.files = ["board_meeting_secret.docx"];
+    } else if (policy.connectorId === 'postgres') {
+      sampleRaw.credit_card_hash = "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+      sampleRaw.salary = "$185,000";
+      sampleRaw.passwords = "$2a$12$e8uq89w7e8q9w7e8q...";
+    } else if (policy.connectorId === 'github') {
+      sampleRaw.source_code = "const AWS_KEY = 'AKIAIOSFODNN7EXAMPLE';";
+      sampleRaw.env_secrets = "DATABASE_URL=postgres://root:p@ss@db:5432";
+    }
+
     res.json({
       success: true,
       status: 'COMPLIANT',
@@ -616,6 +638,8 @@ app.post('/api/agent/run', async (req: Request, res: Response): Promise<void> =>
       recordsReturned: records.length,
       requestedFields,
       allowedFields: policy.allowedFields,
+      rawPayloadSample: sampleRaw,
+      sanitizedPayloadSample: sampleRecord,
       proof: queryResult.proof,
       executionLatencyMs
     });

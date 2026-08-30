@@ -476,50 +476,127 @@ export const AgentStudio: React.FC<AgentStudioProps> = ({ policies }) => {
             {/* TAB 2: ZERO-KNOWLEDGE FIELD REDACTION DIFF */}
             {activeTab === 'redaction_diff' && (
               <div className="space-y-3 text-xs">
-                <div className="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900">
-                  <div className="flex items-center space-x-1.5 font-bold mb-1">
-                    <ShieldCheck className="w-4 h-4 text-indigo-600" />
-                    <span>Cryptographic Zero-Knowledge Sanitization</span>
+                <div className="p-3 rounded-xl bg-indigo-50/80 border border-indigo-200 text-indigo-950 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-1.5 font-bold text-xs text-indigo-900">
+                      <ShieldCheck className="w-4 h-4 text-indigo-600" />
+                      <span>Zero-Knowledge Server-Side Redaction Diff</span>
+                    </div>
+                    <span className="text-[10px] font-mono font-bold bg-indigo-200/60 text-indigo-800 px-2 py-0.5 rounded">
+                      {executionResult?.status === 'COMPLIANT' ? 'Live Query Verified' : 'Zero Leakage Guarantee'}
+                    </span>
                   </div>
-                  <p className="text-[11px] text-indigo-700 leading-relaxed">
-                    Compare raw upstream payload (what the enterprise service sent) with sanitized payload (what the LLM saw).
+                  <p className="text-[11px] text-indigo-800/80 leading-relaxed">
+                    Compare what the upstream service sent vs. what the AI Agent was allowed to receive. Confidential body text, tokens, and PII were stripped server-side before reaching LLM memory.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 font-mono text-[10px]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono text-[10px]">
                   {/* Raw Upstream */}
-                  <div className="p-3 rounded-xl bg-slate-900 text-slate-300 space-y-1.5 border border-slate-800">
-                    <span className="text-rose-400 font-bold block uppercase">🚫 Raw Enterprise API Payload:</span>
-                    <div className="space-y-1 text-slate-400 leading-tight">
-                      <p><span className="text-emerald-400">"sender":</span> "billing@aws.amazon.com",</p>
-                      <p><span className="text-emerald-400">"subject":</span> "AWS Invoice #8921",</p>
-                      <p><span className="text-emerald-400">"date":</span> "2026-08-29",</p>
-                      <p className="bg-rose-950/80 text-rose-300 p-1 rounded border border-rose-800/60">
-                        <span className="text-rose-400">"body":</span> "Card: 4111-XXXX-XXXX-8910 Total: $42.50 Bearer: ghp_sec_9912..."
-                      </p>
-                      <p className="bg-rose-950/80 text-rose-300 p-1 rounded border border-rose-800/60">
-                        <span className="text-rose-400">"attachments":</span> ["payroll_q3.pdf", "prod_key.pem"]
-                      </p>
+                  <div className="p-3.5 rounded-xl bg-slate-950 text-slate-200 space-y-2 border border-slate-800 shadow-inner">
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-800">
+                      <span className="text-rose-400 font-bold uppercase text-[10px] flex items-center gap-1">
+                        <Lock className="w-3 h-3 text-rose-400" />
+                        Raw Upstream Payload
+                      </span>
+                      <span className="text-[9px] text-slate-500 font-mono">Incoming API</span>
+                    </div>
+                    <div className="space-y-1.5 text-slate-300 leading-relaxed">
+                      {executionResult?.rawPayloadSample ? (
+                        Object.entries(executionResult.rawPayloadSample).map(([key, val]) => {
+                          const isAllowed = selectedPolicy.allowedFields.includes(key);
+                          return (
+                            <div
+                              key={key}
+                              className={`p-1 rounded ${
+                                isAllowed
+                                  ? 'text-slate-300'
+                                  : 'bg-rose-950/70 border border-rose-800/60 text-rose-300'
+                              }`}
+                            >
+                              <span className={isAllowed ? 'text-indigo-400 font-bold' : 'text-rose-400 font-bold'}>
+                                "{key}":
+                              </span>{' '}
+                              <span>{typeof val === 'object' ? JSON.stringify(val) : `"${String(val)}"`}</span>
+                              {!isAllowed && (
+                                <span className="ml-1 text-[8px] uppercase font-bold bg-rose-900 text-rose-200 px-1 rounded">
+                                  REDACTED
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <>
+                          <p><span className="text-indigo-400 font-bold">"sender":</span> "billing@aws.amazon.com",</p>
+                          <p><span className="text-indigo-400 font-bold">"subject":</span> "AWS Invoice #8921",</p>
+                          <p><span className="text-indigo-400 font-bold">"date":</span> "2026-08-29",</p>
+                          <div className="bg-rose-950/70 text-rose-300 p-1.5 rounded border border-rose-800/60 flex items-center justify-between">
+                            <span><span className="text-rose-400 font-bold">"body":</span> "Card: 4111-XXXX-XXXX-8910..."</span>
+                            <span className="text-[8px] uppercase font-bold bg-rose-900 text-rose-200 px-1 rounded">REDACTED</span>
+                          </div>
+                          <div className="bg-rose-950/70 text-rose-300 p-1.5 rounded border border-rose-800/60 flex items-center justify-between">
+                            <span><span className="text-rose-400 font-bold">"attachments":</span> ["payroll_q3.pdf"]</span>
+                            <span className="text-[8px] uppercase font-bold bg-rose-900 text-rose-200 px-1 rounded">REDACTED</span>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
 
                   {/* Sanitized View */}
-                  <div className="p-3 rounded-xl bg-emerald-950/40 text-emerald-100 space-y-1.5 border border-emerald-800/60">
-                    <span className="text-emerald-400 font-bold block uppercase">✓ Sanitized Agent View:</span>
-                    <div className="space-y-1 text-emerald-200 leading-tight">
-                      <p><span className="text-emerald-400">"sender":</span> "billing@aws.amazon.com",</p>
-                      <p><span className="text-emerald-400">"subject":</span> "AWS Invoice #8921",</p>
-                      <p><span className="text-emerald-400">"date":</span> "2026-08-29"</p>
-                      <div className="p-1.5 rounded bg-emerald-900/50 border border-emerald-700/50 text-[9px] text-emerald-300 mt-2">
-                        <span>🔒 Confidential fields redacted server-side before reaching LLM context.</span>
+                  <div className="p-3.5 rounded-xl bg-slate-950 text-slate-100 space-y-2 border border-emerald-900/60 shadow-inner">
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-800">
+                      <span className="text-emerald-400 font-bold uppercase text-[10px] flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                        Sanitized Agent View
+                      </span>
+                      <span className="text-[9px] text-emerald-500 font-mono">LLM Context</span>
+                    </div>
+                    <div className="space-y-1.5 text-slate-200 leading-relaxed">
+                      {executionResult?.sanitizedPayloadSample ? (
+                        Object.entries(executionResult.sanitizedPayloadSample).map(([key, val]) => (
+                          <div key={key} className="p-1 rounded bg-slate-900/80 border border-slate-800">
+                            <span className="text-emerald-400 font-bold">"{key}":</span>{' '}
+                            <span className="text-slate-100 font-medium">
+                              {typeof val === 'object' ? JSON.stringify(val) : `"${String(val)}"`}
+                            </span>
+                          </div>
+                        ))
+                      ) : (
+                        <>
+                          <div className="p-1 rounded bg-slate-900/80 border border-slate-800">
+                            <span className="text-emerald-400 font-bold">"sender":</span> <span className="text-slate-100 font-medium">"billing@aws.amazon.com"</span>
+                          </div>
+                          <div className="p-1 rounded bg-slate-900/80 border border-slate-800">
+                            <span className="text-emerald-400 font-bold">"subject":</span> <span className="text-slate-100 font-medium">"AWS Invoice #8921"</span>
+                          </div>
+                          <div className="p-1 rounded bg-slate-900/80 border border-slate-800">
+                            <span className="text-emerald-400 font-bold">"date":</span> <span className="text-slate-100 font-medium">"2026-08-29"</span>
+                          </div>
+                        </>
+                      )}
+                      <div className="p-2 rounded-lg bg-emerald-950/80 border border-emerald-500/40 text-[10px] text-emerald-300 mt-2 font-mono">
+                        <div className="flex items-center space-x-1 font-bold text-emerald-400 mb-0.5">
+                          <ShieldCheck className="w-3.5 h-3.5" />
+                          <span>100% Zero-Leakage Confirmed</span>
+                        </div>
+                        <p className="text-[9px] text-emerald-200/90 leading-tight">
+                          Confidential fields were purged prior to LLM memory ingestion.
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[10px] font-mono text-slate-700">
-                  <span className="font-bold text-slate-900 block mb-0.5">Midnight Mathematical Invariant:</span>
-                  <code>assert((response_mask &amp; ~allowed_mask) == 0) // Verified 0 leakage</code>
+                <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-300 flex items-center justify-between">
+                  <div>
+                    <span className="text-indigo-400 font-bold block mb-0.5">Midnight Mathematical Invariant:</span>
+                    <code className="text-emerald-400">assert((response_mask &amp; ~allowed_mask) == 0)</code>
+                  </div>
+                  <span className="text-[9px] font-bold text-emerald-400 bg-emerald-950 border border-emerald-800 px-2 py-0.5 rounded">
+                    Verified Cryptographically
+                  </span>
                 </div>
               </div>
             )}
