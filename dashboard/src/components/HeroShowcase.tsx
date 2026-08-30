@@ -42,6 +42,7 @@ export const HeroShowcase: React.FC = () => {
   const [heroSdkTab, setHeroSdkTab] = useState<'python' | 'typescript' | 'curl'>('python');
   const [copiedHeroSdk, setCopiedHeroSdk] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [isMounted, setIsMounted] = useState(false);
 
   const effectiveGatewayUrl = typeof window !== 'undefined' 
     ? (window.location.origin.includes('localhost') ? 'http://localhost:4000' : window.location.origin)
@@ -50,6 +51,7 @@ export const HeroShowcase: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    setIsMounted(true);
     const handleScroll = () => {
       setScrollY(window.scrollY);
     };
@@ -210,13 +212,14 @@ export const HeroShowcase: React.FC = () => {
       <div className="sticky top-20 sm:top-24 z-0 text-center max-w-4xl mx-auto space-y-4 sm:space-y-6 pt-2 sm:pt-4 px-2 sm:px-0 select-text">
         
         {/* Rotating Electric Lightning Beam Border Pill */}
+        {/* Rotating Electric Lightning Beam Border Pill */}
         <div
           style={{
             opacity: subElementsOpacity,
             transform: `translateY(${scrollProgress * -10}px)`,
             transition: 'opacity 0.15s ease-out, transform 0.15s ease-out'
           }}
-          className="inline-block animate-hero-badge"
+          className={`inline-block ${isMounted ? 'animate-hero-badge' : 'opacity-0'}`}
         >
           <div className="lightning-pill-container shadow-sm hover:shadow-indigo-500/20 transition-all duration-300">
             <div className="lightning-beam" />
@@ -235,7 +238,7 @@ export const HeroShowcase: React.FC = () => {
             opacity: titleOpacity,
             transition: 'transform 0.08s ease-out, opacity 0.1s ease-out'
           }}
-          className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15] will-change-transform animate-hero-title"
+          className={`text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15] will-change-transform ${isMounted ? 'animate-hero-title' : 'opacity-0'}`}
         >
           Your AI agent gets a{' '}
           <span className="relative inline-block text-indigo-600">
@@ -259,7 +262,7 @@ export const HeroShowcase: React.FC = () => {
             pointerEvents: subElementsOpacity > 0.1 ? 'auto' : 'none',
             transition: 'opacity 0.15s ease-out, transform 0.15s ease-out'
           }}
-          className="space-y-4 sm:space-y-6 pt-1 will-change-transform animate-hero-sub"
+          className={`space-y-4 sm:space-y-6 pt-1 will-change-transform ${isMounted ? 'animate-hero-sub' : 'opacity-0'}`}
         >
           <p className="text-sm sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed px-2">
             Keyhole enforces a mathematical zero-knowledge perimeter on autonomous AI agents across{' '}
@@ -294,7 +297,7 @@ export const HeroShowcase: React.FC = () => {
           boxShadow: visualizerShadow,
           transition: 'transform 0.1s ease-out, box-shadow 0.15s ease-out'
         }}
-        className="relative z-10 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl p-5 sm:p-8 shadow-card hover:shadow-card-hover space-y-6 transition-all duration-300 mt-6 sm:mt-8 will-change-transform animate-hero-visualizer"
+        className={`relative z-10 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl p-5 sm:p-8 shadow-card hover:shadow-card-hover space-y-6 transition-all duration-300 mt-6 sm:mt-8 will-change-transform ${isMounted ? 'animate-hero-visualizer' : 'opacity-0'}`}
       >
         {/* Top Controls: Service Switcher & Aperture Slider */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100">
@@ -308,13 +311,13 @@ export const HeroShowcase: React.FC = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            {/* Service Switcher Tabs */}
-            <div className="flex flex-wrap gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200 text-[11px] font-semibold">
+            {/* Service Switcher Tabs - Horizontally scrollable without visible scrollbars */}
+            <div className="flex items-center space-x-1 p-1 rounded-xl bg-slate-100 border border-slate-200 text-[11px] font-semibold overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden max-w-full">
               {(['gmail', 'm365', 'slack', 'github', 'postgres', 'salesforce', 'notion'] as const).map((s) => (
                 <button
                   key={s}
                   onClick={() => setVisualizerService(s as any)}
-                  className={`px-2.5 py-1 rounded-lg transition ${
+                  className={`px-2.5 py-1 rounded-lg transition whitespace-nowrap flex-shrink-0 ${
                     visualizerService === s
                       ? 'bg-white text-slate-900 font-bold shadow-2xs'
                       : 'text-slate-600 hover:text-slate-900'
