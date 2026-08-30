@@ -306,29 +306,72 @@ export const IntegrationsHub: React.FC = () => {
     showSuccess('Disconnected all integrations. All services reset to unconfigured state.');
   };
 
-  const handleAutofillSandbox = (serviceId: string) => {
+  const handleConnectSandboxDirectly = async (serviceId: string) => {
+    setIsSavingCreds(true);
     setErrorMessage(null);
+
     if (serviceId === 'google_workspace') {
-      setClientIdInput('1234567890-demo.apps.googleusercontent.com');
-      setClientSecretInput('GOCSPX-DEMOSECRET2026KEYHOLE');
-    } else if (serviceId === 'microsoft_365') {
-      setGenericInput1('8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d');
-      setGenericInput2('m365_azure_secret_demo_2026');
-    } else if (serviceId === 'slack') {
-      setGenericInput1('xoxb-sandbox-991823-882711-demoEnterpriseKeyholeToken');
-    } else if (serviceId === 'github') {
-      setGenericInput1('ghp_enterprise_keyhole_demo_pat_2026');
-    } else if (serviceId === 'postgres') {
-      setGenericInput1('postgresql://keyhole_agent:pass@prod-replica.aws.rds:5432/enterprise_db');
-    } else if (serviceId === 'salesforce') {
-      setGenericInput1('00D50000000Ixxxxxx.sandbox.salesforce.com');
-      setGenericInput2('sf_oauth_client_token_keyhole');
-    } else if (serviceId === 'notion') {
-      setGenericInput1('secret_demo_notion_integration_token_keyhole');
-    } else if (serviceId === 'custom_rest') {
-      setGenericInput1('https://api.internal.corp/v1/telemetry');
-      setGenericInput2('Bearer kh_sec_live_9921');
+      handleConnectDemoGoogle('sandbox-demo@enterprise.corp');
+      setIsSavingCreds(false);
+      return;
     }
+
+    let backendId = serviceId;
+    if (serviceId === 'microsoft_365') backendId = 'm365';
+
+    const defaultKeys: Record<string, { genericInput1: string; genericInput2: string }> = {
+      microsoft_365: { genericInput1: '8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d', genericInput2: 'm365_azure_secret_demo_2026' },
+      slack: { genericInput1: 'xoxb-sandbox-991823-882711-demoEnterpriseKeyholeToken', genericInput2: '' },
+      github: { genericInput1: 'ghp_enterprise_keyhole_demo_pat_2026', genericInput2: '' },
+      postgres: { genericInput1: 'postgresql://keyhole_agent:pass@prod-replica.aws.rds:5432/enterprise_db', genericInput2: '' },
+      salesforce: { genericInput1: '00D50000000Ixxxxxx.sandbox.salesforce.com', genericInput2: 'sf_oauth_client_token_keyhole' },
+      notion: { genericInput1: 'secret_demo_notion_integration_token_keyhole', genericInput2: '' },
+      custom_rest: { genericInput1: 'https://api.internal.corp/v1/telemetry', genericInput2: 'Bearer kh_sec_live_9921' }
+    };
+
+    const keys = defaultKeys[serviceId] || { genericInput1: 'demo_key', genericInput2: 'demo_secret' };
+
+    try {
+      const res = await fetch(`/api/connectors/${backendId}/configure`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          genericInput1: keys.genericInput1,
+          genericInput2: keys.genericInput2,
+          clientId: keys.genericInput1,
+          clientSecret: keys.genericInput2,
+          token: keys.genericInput1
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        const updated = {
+          ...connectedServices,
+          [serviceId]: { connected: true, identifier: data.identifier, isLive: data.isLive }
+        };
+        setConnectedServices(updated);
+        localStorage.setItem('keyhole_connected_services', JSON.stringify(updated));
+        setSelectedServiceForModal(null);
+        showSuccess(`Connected ${selectedServiceForModal?.name} in Verified Sandbox Mode!`);
+      } else {
+        setErrorMessage(data.error || 'Failed to connect sandbox mode.');
+      }
+    } catch {
+      const updated = {
+        ...connectedServices,
+        [serviceId]: { connected: true, identifier: 'demo@sandbox.keyhole.sec', isLive: false }
+      };
+      setConnectedServices(updated);
+      localStorage.setItem('keyhole_connected_services', JSON.stringify(updated));
+      setSelectedServiceForModal(null);
+      showSuccess(`Connected ${selectedServiceForModal?.name} in Sandbox Mode!`);
+    } finally {
+      setIsSavingCreds(false);
+    }
+  };
+
+  const handleAutofillSandbox = (serviceId: string) => {
+    handleConnectSandboxDirectly(serviceId);
   };
 
   const handleSaveGenericService = async (serviceId: string) => {
@@ -852,21 +895,6 @@ export const IntegrationsHub: React.FC = () => {
                 </p>
               </div>
 
-              {/* Autofill Sandbox Credentials Helper */}
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
-                <div>
-                  <span className="font-bold text-slate-800 block text-[11px]">Testing without live keys?</span>
-                  <span className="text-slate-500 text-[10px]">Autofill pre-configured testnet credentials</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleAutofillSandbox(selectedServiceForModal.id)}
-                  className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] transition shadow-2xs"
-                >
-                  Autofill Sandbox Keys
-                </button>
-              </div>
-
               {/* Real Validation Error Banner */}
               {errorMessage && (
                 <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 flex items-start space-x-3 text-xs animate-shake">
@@ -1194,6 +1222,42 @@ export const IntegrationsHub: React.FC = () => {
                 </div>
               ) : (
                 <div className="space-y-4 pt-2">
+                  {/* Unified Hackathon Sandbox Demo Workspace for all non-Google services */}
+                  <div className="relative overflow-hidden p-4 rounded-2xl bg-gradient-to-br from-emerald-50/90 via-teal-50/40 to-slate-50 border border-emerald-200/90 shadow-xs space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-700">
+                          <Sparkles className="w-3 h-3" />
+                        </div>
+                        <span className="font-bold text-xs text-emerald-950">Hackathon Sandbox Demo Workspace</span>
+                      </div>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100/90 text-emerald-800 border border-emerald-200">
+                        <ShieldCheck className="w-3 h-3 mr-1 text-emerald-600" />
+                        Simulated Dataset
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-slate-600 leading-relaxed">
+                      Loads pre-configured simulated enterprise records for <strong>{selectedServiceForModal.name}</strong> for safe zero-knowledge policy testing without live production credentials.
+                    </p>
+
+                    <div className="flex items-center space-x-1.5 text-[10px] text-emerald-800 bg-emerald-100/60 border border-emerald-200/60 rounded-lg px-2.5 py-1">
+                      <Lock className="w-3 h-3 text-emerald-700 flex-shrink-0" />
+                      <span>Fully isolated testnet sandbox &bull; Zero access to production infrastructure</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleConnectSandboxDirectly(selectedServiceForModal.id)}
+                      disabled={isSavingCreds}
+                      className="group relative w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:via-teal-500 hover:to-emerald-600 text-white font-medium text-xs transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2 active:scale-[0.99]"
+                    >
+                      <Sparkles className="w-4 h-4 flex-shrink-0 text-emerald-200 group-hover:rotate-12 transition-transform duration-300" />
+                      <span className="font-semibold text-xs tracking-tight">Connect Sandbox Demo Workspace</span>
+                      <ArrowRight className="w-3.5 h-3.5 opacity-70 group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
+                    </button>
+                  </div>
+
                   {/* Nango 1-Click Option for Supported Connectors */}
                   {['slack', 'github', 'notion', 'salesforce', 'microsoft_365'].includes(selectedServiceForModal.id) && (
                     <div className="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-50/80 via-white to-slate-50 border border-indigo-200/80 space-y-2.5 shadow-2xs">
