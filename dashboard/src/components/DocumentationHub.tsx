@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { 
   Zap, 
   Layers, 
@@ -17,6 +17,7 @@ import { HugeBotIcon, HugeShieldIcon, HugeCpuIcon } from './HugeIcons.tsx';
 export const DocumentationHub: React.FC = () => {
   const [activeSection, setActiveSection] = useState('quickstart');
   const [copiedSnippet, setCopiedSnippet] = useState<string | null>(null);
+  const [sdkTab, setSdkTab] = useState<'python' | 'typescript' | 'curl'>('python');
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -111,11 +112,41 @@ export const DocumentationHub: React.FC = () => {
                 Keyhole operates as a <strong>Zero-Trust Autonomous Proxy</strong> between your AI agents and enterprise APIs. You do not need to rewrite your agent prompts or hardcode scope logic in your code.
               </p>
 
+              {/* Language Switcher Tabs */}
+              <div className="flex items-center space-x-2 border-b border-slate-200 pb-2">
+                <button
+                  onClick={() => setSdkTab('python')}
+                  className={`px-3 py-1.5 rounded-lg font-mono text-xs font-bold transition ${
+                    sdkTab === 'python' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Python (CrewAI / LangChain)
+                </button>
+                <button
+                  onClick={() => setSdkTab('typescript')}
+                  className={`px-3 py-1.5 rounded-lg font-mono text-xs font-bold transition ${
+                    sdkTab === 'typescript' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  TypeScript (OpenAI / Vercel)
+                </button>
+                <button
+                  onClick={() => setSdkTab('curl')}
+                  className={`px-3 py-1.5 rounded-lg font-mono text-xs font-bold transition ${
+                    sdkTab === 'curl' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  REST / cURL
+                </button>
+              </div>
+
+              {/* Code Snippet Box */}
               <div className="bg-slate-950 text-slate-100 rounded-xl p-4 font-mono text-xs relative overflow-x-auto shadow-inner">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-3 text-[11px] text-slate-400">
-                  <span>python · agent_shield.py</span>
+                  <span>{sdkTab === 'python' ? 'python · agent_shield.py' : sdkTab === 'typescript' ? 'typescript · agent.ts' : 'shell · terminal'}</span>
                   <button
-                    onClick={() => handleCopy(`from keyhole import KeyholeShield
+                    onClick={() => handleCopy(
+                      sdkTab === 'python' ? `from keyhole import KeyholeShield
 from crewai import Agent
 
 # 1. Universal 1-Line Drop-in (Auto-discovers and secures all connected services)
@@ -132,32 +163,84 @@ agent = Agent(
 # 3. Agent executes while Keyhole enforces bounds & generates Midnight ZK proofs!
 result = agent.execute("Scan recent vendor invoices.")
 print("Verified Data:", result.data)
-print("Midnight ZK Proof Tx:", result.proof.midnight_tx_id)`, 'quick-py')}
+print("Midnight ZK Proof Tx:", result.proof.midnight_tx_id)`
+                      : sdkTab === 'typescript' ? `import { KeyholeShield } from '@keyhole/sdk';
+import OpenAI from 'openai';
+
+const openai = new OpenAI();
+const shield = new KeyholeShield({ apiKey: process.env.KEYHOLE_API_KEY });
+const tools = await shield.getTools(); // Auto-manages all policies
+
+const response = await openai.chat.completions.create({
+  model: 'gpt-4o',
+  messages: [{ role: 'user', content: 'Scan recent vendor invoices and candidate emails' }],
+  tools
+});`
+                      : `curl -X POST https://api.keyhole.sec/api/agent/run \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer kh_live_xxx" \\
+  -d '{"connectionId": "auto", "prompt": "Scan recent vendor invoices"}'`,
+                      sdkTab
+                    )}
                     className="flex items-center space-x-1 hover:text-white transition"
                   >
-                    {copiedSnippet === 'quick-py' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedSnippet === 'quick-py' ? 'Copied' : 'Copy'}</span>
+                    {copiedSnippet === sdkTab ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedSnippet === sdkTab ? 'Copied' : 'Copy'}</span>
                   </button>
                 </div>
                 <pre className="leading-relaxed font-mono">
-{`from keyhole import KeyholeShield
+{sdkTab === 'python' ? `# Install: pip install keyhole-shield crewai langchain
+from keyhole import KeyholeShield
 from crewai import Agent
 
-# 1. Universal 1-Line Drop-in (Auto-discovers and secures all connected services)
-shield = KeyholeShield(gateway_url="https://api.keyhole.sec", api_key="kh_live_xxx")
+# 1. Universal 1-Line Drop-in: Auto-shields ALL enterprise tools
+# Policy allowlists are managed centrally in the Keyhole Console (0 agent code edits!)
+shield = KeyholeShield(
+    gateway_url="https://api.keyhole.sec",
+    api_key="kh_live_9f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5"
+)
 
-# 2. Bind auto-routing tools to your agent
+# 2. Bind auto-routing shielded tools to any autonomous agent
 agent = Agent(
-    role="Autonomous Expense Auditor",
-    goal="Extract SaaS receipts and reconciliation data with 0 leakage",
+    role="Autonomous Enterprise Assistant",
+    goal="Audit invoices, triage GitHub PRs, and monitor Slack with 0 data leakage",
     tools=shield.get_tools(["gmail", "m365", "slack", "github", "postgres"]),
     verbose=True
 )
 
-# 3. Agent executes while Keyhole enforces bounds & generates Midnight ZK proofs!
+# 3. Agent executes with sub-second Midnight ZK proofs anchored automatically!
 result = agent.execute("Scan recent vendor invoices.")
 print("Verified Data:", result.data)
-print("Midnight ZK Proof Tx:", result.proof.midnight_tx_id)`}
+print("Midnight ZK Proof Tx:", result.proof.midnight_tx_id)`
+: sdkTab === 'typescript' ? `// Install: npm install @keyhole/sdk openai
+import { KeyholeShield } from '@keyhole/sdk';
+import OpenAI from 'openai';
+
+const openai = new OpenAI();
+
+// 1. Universal 1-Line Drop-in for all enterprise tools
+const shield = new KeyholeShield({
+  gatewayUrl: 'https://api.keyhole.sec',
+  apiKey: process.env.KEYHOLE_API_KEY
+});
+
+// 2. Automatically load all active enterprise policies into OpenAI / LangChain tools
+const tools = await shield.getTools(); // Auto-discovers Gmail, M365, Slack, GitHub, Postgres
+
+// 3. AI Agent execution returns cryptographically proven records with 0 leakage
+const response = await openai.chat.completions.create({
+  model: 'gpt-4o',
+  messages: [{ role: 'user', content: 'Scan recent vendor invoices and applicant emails' }],
+  tools
+});`
+: `# Universal Keyhole REST Gateway Query Execution
+curl -X POST https://api.keyhole.sec/api/agent/run \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer kh_live_9f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5" \\
+  -d '{
+    "connectionId": "auto",
+    "prompt": "Scan recent vendor invoices and return sender, subject, and date."
+  }'`}
                 </pre>
               </div>
             </div>
