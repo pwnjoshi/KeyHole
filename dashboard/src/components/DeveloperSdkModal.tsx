@@ -22,29 +22,29 @@ export const DeveloperSdkModal: React.FC<DeveloperSdkModalProps> = ({ onClose })
   const [selectedLang, setSelectedLang] = useState<'python' | 'typescript' | 'curl'>('python');
   const [copied, setCopied] = useState(false);
 
-  const pythonSnippet = `# Install: pip install keyhole-shield langchain crewai
+  const pythonSnippet = `# Install: pip install keyhole-shield crewai langchain
 from keyhole import KeyholeShield
-from crewai import Agent, Task, Crew
+from crewai import Agent, Crew
 
-# 1. Wrap ANY existing tool in 1 line with a Keyhole Zero-Knowledge Scope Policy
-secure_gmail_tool = KeyholeShield(
-    connector="gmail",
-    policy_id="conn_receipts_bot",
-    gateway_url="http://localhost:4000"
+# 1. Universal 1-Line Drop-in: Auto-shields ALL enterprise tools (Gmail, Slack, M365, GitHub, Postgres)
+# Policies & allowed fields are managed centrally in the Keyhole Console (zero agent code edits!)
+shield = KeyholeShield(
+    gateway_url="https://api.keyhole.sec",
+    api_key="kh_live_9f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5"
 )
 
-# 2. Autonomous Agent runs with zero risk of confidential data leakage
+# 2. Bind auto-routing shielded tools to any autonomous agent
 auditor_agent = Agent(
-    role="SaaS Expense Auditor",
-    goal="Extract SaaS receipts and dates for monthly reconciliation",
-    tools=[secure_gmail_tool],
+    role="Autonomous Enterprise Auditor",
+    goal="Handle invoice audits, HR candidate screening, and alerts with 0 data leakage",
+    tools=shield.get_tools(["gmail", "m365", "slack", "github", "postgres"]),
     verbose=True
 )
 
 # 3. Midnight ZK proof is automatically anchored on every tool execution!
 result = auditor_agent.execute("Scan recent vendor invoices.")
 print("Audited Result:", result.data)
-print("Midnight Proof Tx:", result.midnight_proof.tx_id)`;
+print("Midnight ZK Proof Tx:", result.proof.midnight_tx_id);`;
 
   const tsSnippet = `// Install: npm install @keyhole/sdk openai
 import { KeyholeShield } from '@keyhole/sdk';
@@ -52,32 +52,29 @@ import OpenAI from 'openai';
 
 const openai = new OpenAI();
 
-// 1. Initialize Keyhole Zero-Knowledge Tool Shield
+// 1. Universal 1-Line Drop-in for all enterprise tools
 const shield = new KeyholeShield({
-  gatewayUrl: 'http://localhost:4000',
+  gatewayUrl: 'https://api.keyhole.sec',
   apiKey: process.env.KEYHOLE_API_KEY
 });
 
-// 2. Wrap tool definition with declared scope perimeter
-const secureM365Tool = shield.wrapTool({
-  connectionId: 'conn_m365_invoices',
-  description: 'Audits Microsoft 365 cloud invoices with bodies and tokens masked.'
-});
+// 2. Automatically load all active enterprise policies into OpenAI / LangChain tools
+const tools = await shield.getTools(); // Auto-discovers and secures Gmail, M365, Slack, GitHub, Postgres
 
-// 3. AI Agent tool execution returns cryptographically proven records
+// 3. AI Agent execution returns cryptographically proven records with 0 leakage
 const response = await openai.chat.completions.create({
   model: 'gpt-4o',
-  messages: [{ role: 'user', content: 'List recent Microsoft 365 invoices' }],
-  tools: [secureM365Tool]
+  messages: [{ role: 'user', content: 'Scan recent vendor invoices and applicant emails' }],
+  tools
 });`;
 
-  const curlSnippet = `# Keyhole REST Gateway Tool Query Execution
-curl -X POST http://localhost:4000/api/agent/run \\
+  const curlSnippet = `# Universal Keyhole REST Gateway Query Execution
+curl -X POST https://api.keyhole.sec/api/agent/run \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer kh_live_9f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5" \\
   -d '{
-    "connectionId": "conn_receipts_bot",
-    "prompt": "Scan recent emails for vendor invoices."
+    "connectionId": "auto",
+    "prompt": "Scan recent vendor invoices and return sender, subject, and date."
   }'`;
 
   const currentCode = selectedLang === 'python' ? pythonSnippet : selectedLang === 'typescript' ? tsSnippet : curlSnippet;

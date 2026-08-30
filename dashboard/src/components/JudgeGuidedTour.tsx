@@ -152,15 +152,6 @@ export const JudgeGuidedTour: React.FC = () => {
               <ShieldCheck className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0 mt-0.5" />
               <span>{current.keyBenefit}</span>
             </div>
-
-            {/* Quick Action Button */}
-            <button
-              onClick={() => handleGoToStep(currentStep)}
-              className="w-full py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition flex items-center justify-center space-x-1.5 shadow-sm"
-            >
-              <Play className="w-3 h-3 fill-current" />
-              <span>{current.actionLabel}</span>
-            </button>
           </div>
 
           {/* Footer Navigation */}

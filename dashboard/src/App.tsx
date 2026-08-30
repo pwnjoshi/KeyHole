@@ -20,6 +20,7 @@ import { Footer } from './components/Footer.tsx';
 import { CommandDashboard } from './components/CommandDashboard.tsx';
 import { JudgeDemoSandbox } from './components/JudgeDemoSandbox.tsx';
 import { JudgeGuidedTour } from './components/JudgeGuidedTour.tsx';
+import { DocumentationHub } from './components/DocumentationHub.tsx';
 import { ScrollToTop } from './components/ScrollToTop.tsx';
 import { ScopePolicy, AuditEvent, ConnectorInfo, AuthUser } from './types.ts';
 
@@ -310,6 +311,9 @@ function AppContent() {
 
           {/* 2. Public Technical Whitepaper / About */}
           <Route path="/about" element={<AboutPage />} />
+
+          {/* 2b. Public Full Developer Documentation */}
+          <Route path="/docs" element={<DocumentationHub />} />
 
           {/* 3. Login Page (Auto-redirect to /dashboard if already signed in) */}
           <Route

@@ -52,6 +52,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   const publicNavItems = [
     { to: '/', label: 'Overview' },
     { to: '/sandbox', label: 'Live Sandbox' },
+    { to: '/docs', label: 'Docs' },
     { to: '/about', label: 'About & Architecture' },
     { to: '/circuit', label: 'ZK Circuit' },
   ];
@@ -63,6 +64,7 @@ export const Navigation: React.FC<NavigationProps> = ({
     { to: '/integrations', label: 'Integrations' },
     { to: '/analytics', label: 'Analytics' },
     { to: '/circuit', label: 'ZK Circuit' },
+    { to: '/docs', label: 'Docs' },
     { to: '/about', label: 'About' },
   ];
 
