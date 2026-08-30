@@ -991,11 +991,22 @@ app.post('/api/agent/run', async (req: Request, res: Response): Promise<void> =>
     } else if (policy.connectorId === 'gmail') {
       agentResponse = `Here is the summary of matching emails (scoped by Keyhole ZK policy):\n\n` +
         records.map((r: any, idx: number) => {
-          let item = `${idx + 1}. **${r.subject || 'No Subject'}**\n   - From: \`${r.sender || 'Unknown'}\`\n   - Date: ${r.date ? new Date(r.date).toLocaleDateString() : 'N/A'}`;
-          if (r.body || r.snippet) {
-            item += `\n   - Body Snippet (Allowed): "${(r.body || r.snippet).substring(0, 80)}..."`;
+          let item = `${idx + 1}. **${r.subject || 'No Subject'}**\n   - **From:** \`${r.sender || 'Unknown'}\`\n   - **Date:** ${r.date ? new Date(r.date).toLocaleDateString() : 'N/A'}`;
+          
+          // Extract amount if present in subject or metadata
+          const amountMatch = (r.subject || '').match(/(\$[\d,]+(?:\.\d{2})?|\b\d+\s*USD\b)/i);
+          if (amountMatch) {
+            item += `\n   - **Payment / Invoice Amount:** \`${amountMatch[1]}\``;
+          }
+
+          if (r.snippet) {
+            item += `\n   - **Safe Summary Snippet:** "${r.snippet}"`;
+          }
+
+          if (r.body) {
+            item += `\n   - **Full Body:** "${r.body.substring(0, 100)}..."`;
           } else {
-            item += `\n   - Body Content: 🛡️ [ZK Shielded — 0 bytes leaked]`;
+            item += `\n   - **Body Protection:** 🛡️ *Confidential message body & attachments ZK-shielded (0 private bytes exposed)*`;
           }
           return item;
         }).join('\n\n');
