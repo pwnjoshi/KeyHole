@@ -19,6 +19,9 @@ export const DocumentationHub: React.FC = () => {
   const [copiedSnippet, setCopiedSnippet] = useState<string | null>(null);
   const [sdkTab, setSdkTab] = useState<'python' | 'typescript' | 'curl'>('python');
 
+  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://puvyfpwdq6.us-east-1.awsapprunner.com';
+  const effectiveGatewayUrl = currentOrigin.includes('localhost') ? 'http://localhost:4000' : currentOrigin;
+
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedSnippet(id);
@@ -150,7 +153,7 @@ export const DocumentationHub: React.FC = () => {
 from crewai import Agent
 
 # 1. Universal 1-Line Drop-in (Auto-discovers and secures all connected services)
-shield = KeyholeShield(gateway_url="https://api.keyhole.sec", api_key="kh_live_xxx")
+shield = KeyholeShield(gateway_url="${effectiveGatewayUrl}", api_key="kh_live_xxx")
 
 # 2. Bind auto-routing tools to your agent
 agent = Agent(
@@ -168,7 +171,7 @@ print("Midnight ZK Proof Tx:", result.proof.midnight_tx_id)`
 import OpenAI from 'openai';
 
 const openai = new OpenAI();
-const shield = new KeyholeShield({ apiKey: process.env.KEYHOLE_API_KEY });
+const shield = new KeyholeShield({ gatewayUrl: '${effectiveGatewayUrl}', apiKey: process.env.KEYHOLE_API_KEY });
 const tools = await shield.getTools(); // Auto-manages all policies
 
 const response = await openai.chat.completions.create({
@@ -176,7 +179,7 @@ const response = await openai.chat.completions.create({
   messages: [{ role: 'user', content: 'Scan recent vendor invoices and candidate emails' }],
   tools
 });`
-                      : `curl -X POST https://api.keyhole.sec/api/agent/run \\
+                      : `curl -X POST ${effectiveGatewayUrl}/api/agent/run \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer kh_live_xxx" \\
   -d '{"connectionId": "auto", "prompt": "Scan recent vendor invoices"}'`,
@@ -196,7 +199,7 @@ from crewai import Agent
 # 1. Universal 1-Line Drop-in: Auto-shields ALL enterprise tools
 # Policy allowlists are managed centrally in the Keyhole Console (0 agent code edits!)
 shield = KeyholeShield(
-    gateway_url="https://api.keyhole.sec",
+    gateway_url="${effectiveGatewayUrl}",
     api_key="kh_live_9f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5"
 )
 
@@ -220,7 +223,7 @@ const openai = new OpenAI();
 
 // 1. Universal 1-Line Drop-in for all enterprise tools
 const shield = new KeyholeShield({
-  gatewayUrl: 'https://api.keyhole.sec',
+  gatewayUrl: '${effectiveGatewayUrl}',
   apiKey: process.env.KEYHOLE_API_KEY
 });
 
@@ -234,7 +237,7 @@ const response = await openai.chat.completions.create({
   tools
 });`
 : `# Universal Keyhole REST Gateway Query Execution
-curl -X POST https://api.keyhole.sec/api/agent/run \\
+curl -X POST ${effectiveGatewayUrl}/api/agent/run \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer kh_live_9f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5" \\
   -d '{

@@ -22,6 +22,9 @@ export const DeveloperSdkModal: React.FC<DeveloperSdkModalProps> = ({ onClose })
   const [selectedLang, setSelectedLang] = useState<'python' | 'typescript' | 'curl'>('python');
   const [copied, setCopied] = useState(false);
 
+  const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'https://puvyfpwdq6.us-east-1.awsapprunner.com';
+  const effectiveGatewayUrl = currentOrigin.includes('localhost') ? 'http://localhost:4000' : currentOrigin;
+
   const pythonSnippet = `# Install: pip install keyhole-shield crewai langchain
 from keyhole import KeyholeShield
 from crewai import Agent, Crew
@@ -29,7 +32,7 @@ from crewai import Agent, Crew
 # 1. Universal 1-Line Drop-in: Auto-shields ALL enterprise tools (Gmail, Slack, M365, GitHub, Postgres)
 # Policies & allowed fields are managed centrally in the Keyhole Console (zero agent code edits!)
 shield = KeyholeShield(
-    gateway_url="https://api.keyhole.sec",
+    gateway_url="${effectiveGatewayUrl}",
     api_key="kh_live_9f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5"
 )
 
@@ -54,7 +57,7 @@ const openai = new OpenAI();
 
 // 1. Universal 1-Line Drop-in for all enterprise tools
 const shield = new KeyholeShield({
-  gatewayUrl: 'https://api.keyhole.sec',
+  gatewayUrl: '${effectiveGatewayUrl}',
   apiKey: process.env.KEYHOLE_API_KEY
 });
 
@@ -68,13 +71,13 @@ const response = await openai.chat.completions.create({
   tools
 });`;
 
-  const curlSnippet = `# Universal Keyhole REST Gateway Query Execution
-curl -X POST https://api.keyhole.sec/api/agent/run \\
+  const curlSnippet = `# Direct Keyhole Gateway API Execution
+curl -X POST ${effectiveGatewayUrl}/api/agent/run \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer kh_live_9f8a2b3c4d5e6f7a8b9c0d1e2f3a4b5" \\
   -d '{
     "connectionId": "auto",
-    "prompt": "Scan recent vendor invoices and return sender, subject, and date."
+    "prompt": "Scan recent vendor invoices and return receipts."
   }'`;
 
   const currentCode = selectedLang === 'python' ? pythonSnippet : selectedLang === 'typescript' ? tsSnippet : curlSnippet;

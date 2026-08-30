@@ -326,34 +326,39 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           </button>
         </form>
 
-        {/* Quick Test Accounts for Evaluators / Judges */}
+        {/* 1-Click Instant Demo Login for Judges & Evaluators */}
         <div className="pt-4 border-t border-slate-100 space-y-2 text-xs">
-          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center">
-            Quick 1-Click Test Accounts:
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => handleQuickFill('admin@keyhole.sec', 'midnight2026')}
-              className="p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200 text-left transition group"
-            >
-              <span className="font-bold text-slate-800 block text-[11px] group-hover:text-indigo-600">
-                Security Admin
-              </span>
-              <span className="text-[10px] text-slate-500 font-mono">admin@keyhole.sec</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleQuickFill('auditor@midnight.network', 'midnight2026')}
-              className="p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200 text-left transition group"
-            >
-              <span className="font-bold text-slate-800 block text-[11px] group-hover:text-indigo-600">
-                Compliance Officer
-              </span>
-              <span className="text-[10px] text-slate-500 font-mono">auditor@midnight...</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={async () => {
+              setIsLoading(true);
+              setError(null);
+              try {
+                const res = await fetch('/api/auth/login', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email: 'admin@keyhole.sec', password: 'midnight2026' })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                  localStorage.setItem('keyhole-jwt', data.token);
+                  onLoginSuccess(data.user, data.token);
+                  navigate(from, { replace: true });
+                } else {
+                  handleQuickFill('admin@keyhole.sec', 'midnight2026');
+                }
+              } catch {
+                handleQuickFill('admin@keyhole.sec', 'midnight2026');
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+            disabled={isLoading}
+            className="w-full py-2.5 px-4 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200 text-slate-700 hover:text-indigo-700 text-xs font-bold transition flex items-center justify-center space-x-2 shadow-2xs"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+            <span>1-Click Instant Sign In (Judge Demo Account)</span>
+          </button>
         </div>
 
         <div className="text-center text-[10px] text-slate-400 font-mono">
