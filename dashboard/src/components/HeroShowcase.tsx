@@ -38,7 +38,6 @@ export const HeroShowcase: React.FC = () => {
   const [apertureSize, setApertureSize] = useState<number>(25); // 25% = strict keyhole, 100% = full room
   const [activeAttackScenario, setActiveAttackScenario] = useState<'injection' | 'm365_leak' | 'slack_dm' | 'db_credit_card' | 'compliant'>('injection');
   const [visualizerService, setVisualizerService] = useState<'gmail' | 'm365' | 'slack' | 'github' | 'postgres'>('gmail');
-  const [scrollY, setScrollY] = useState(0);
   const [heroSdkTab, setHeroSdkTab] = useState<'python' | 'typescript' | 'curl'>('python');
   const [copiedHeroSdk, setCopiedHeroSdk] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -52,26 +51,7 @@ export const HeroShowcase: React.FC = () => {
 
   useEffect(() => {
     setIsMounted(true);
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  // Parallax calculations: Headline smoothly expands slightly on initial scroll (1.0 -> 1.08x) and fades out naturally
-  const scrollProgress = Math.min(scrollY / 260, 1);
-  const titleScale = 1 + scrollProgress * 0.08;
-  const titleOpacity = Math.max(1 - scrollProgress * 1.0, 0);
-
-  // Subtitle & Call-to-action buttons smoothly fade away first
-  const subElementsOpacity = Math.max(1 - scrollProgress * 2.0, 0);
-  const subElementsTranslateY = scrollProgress * 15;
-
-  // Visualizer Card Scroll-Driven Expansion
-  const visualizerProgress = Math.min(Math.max((scrollY - 40) / 280, 0), 1);
-  const visualizerScale = 0.96 + visualizerProgress * 0.04;
-  const visualizerShadow = `0 0 ${visualizerProgress * 35}px -10px rgba(99, 102, 241, ${0.08 + visualizerProgress * 0.2})`;
 
   const scenarios = {
     injection: {
@@ -208,18 +188,10 @@ export const HeroShowcase: React.FC = () => {
   return (
     <div className="space-y-10 sm:space-y-14 py-2 sm:py-4 relative animate-entrance">
       
-      {/* 1. Hero Title & Value Proposition Header Layer */}
-      <div className="relative z-0 text-center max-w-4xl mx-auto space-y-4 sm:space-y-6 pt-3 sm:pt-6 px-2 sm:px-0 select-text">
-        
+      {/* 1. Header Hero Section */}
+      <div className="relative text-center max-w-4xl mx-auto space-y-4 sm:space-y-6 pt-3 sm:pt-6 px-2 sm:px-0 select-text">
         {/* Rotating Electric Lightning Beam Border Pill */}
-        <div
-          style={{
-            opacity: subElementsOpacity,
-            transform: `translateY(${scrollProgress * -10}px)`,
-            transition: 'opacity 0.15s ease-out, transform 0.15s ease-out'
-          }}
-          className={`inline-block ${isMounted ? 'animate-hero-badge' : 'opacity-0'}`}
-        >
+        <div className={`inline-block ${isMounted ? 'animate-hero-badge' : 'opacity-0'}`}>
           <div className="lightning-pill-container shadow-sm hover:shadow-indigo-500/20 transition-all duration-300">
             <div className="lightning-beam" />
             <div className="lightning-pill-inner">
@@ -230,15 +202,8 @@ export const HeroShowcase: React.FC = () => {
           </div>
         </div>
 
-        {/* Primary Headline: Enlarges on Scroll & Stays as a Relaxed Translucent Background Watermark */}
-        <h1
-          style={{
-            transform: `scale(${titleScale})`,
-            opacity: titleOpacity,
-            transition: 'transform 0.08s ease-out, opacity 0.1s ease-out'
-          }}
-          className={`text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15] will-change-transform ${isMounted ? 'animate-hero-title' : 'opacity-0'}`}
-        >
+        {/* Primary Headline */}
+        <h1 className={`text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15] will-change-transform ${isMounted ? 'animate-hero-title' : 'opacity-0'}`}>
           Your AI agent gets a{' '}
           <span className="relative inline-block text-indigo-600">
             keyhole
@@ -253,16 +218,8 @@ export const HeroShowcase: React.FC = () => {
           , not the whole room.
         </h1>
 
-        {/* Subtitle & Value Proposition: Fades Out When Scrolling Down */}
-        <div
-          style={{
-            opacity: subElementsOpacity,
-            transform: `translateY(${subElementsTranslateY}px)`,
-            pointerEvents: subElementsOpacity > 0.1 ? 'auto' : 'none',
-            transition: 'opacity 0.15s ease-out, transform 0.15s ease-out'
-          }}
-          className={`space-y-4 sm:space-y-6 pt-1 will-change-transform ${isMounted ? 'animate-hero-sub' : 'opacity-0'}`}
-        >
+        {/* Subtitle & Value Proposition */}
+        <div className={`space-y-4 sm:space-y-6 pt-1 will-change-transform ${isMounted ? 'animate-hero-sub' : 'opacity-0'}`}>
           <p className="text-sm sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed px-2">
             Keyhole enforces a mathematical zero-knowledge perimeter on autonomous AI agents across{' '}
             <strong className="text-slate-900 font-semibold">Google Workspace, Microsoft 365, Slack, GitHub, Salesforce, Notion &amp; PostgreSQL</strong>.{' '}
@@ -289,15 +246,8 @@ export const HeroShowcase: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Interactive Live Keyhole Aperture Visualizer Card with Multi-Service Switcher */}
-      <div 
-        style={{
-          transform: `scale(${visualizerScale})`,
-          boxShadow: visualizerShadow,
-          transition: 'transform 0.1s ease-out, box-shadow 0.15s ease-out'
-        }}
-        className={`relative z-10 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl p-5 sm:p-8 shadow-card hover:shadow-card-hover space-y-6 transition-all duration-300 mt-4 sm:mt-6 will-change-transform ${isMounted ? 'animate-hero-visualizer' : 'opacity-0'}`}
-      >
+      {/* 2. Interactive Live Keyhole Aperture Visualizer Card */}
+      <div className={`relative z-10 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl p-5 sm:p-8 shadow-card hover:shadow-card-hover space-y-6 transition-all duration-300 mt-6 sm:mt-8 will-change-transform ${isMounted ? 'animate-hero-visualizer' : 'opacity-0'}`}>
         {/* Top Controls: Service Switcher & Aperture Slider */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100">
           <div>
