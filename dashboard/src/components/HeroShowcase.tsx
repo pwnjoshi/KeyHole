@@ -59,19 +59,19 @@ export const HeroShowcase: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Parallax calculations: Headline smoothly enlarges to 1.28x and dims to a relaxed 0.12 opacity background watermark
-  const scrollProgress = Math.min(scrollY / 300, 1);
-  const titleScale = 1 + scrollProgress * 0.28;
-  const titleOpacity = Math.max(1 - scrollProgress * 0.88, 0.12);
+  // Parallax calculations: Headline smoothly expands slightly on initial scroll (1.0 -> 1.08x) and fades out naturally
+  const scrollProgress = Math.min(scrollY / 260, 1);
+  const titleScale = 1 + scrollProgress * 0.08;
+  const titleOpacity = Math.max(1 - scrollProgress * 1.0, 0);
 
-  // Subtitle & Call-to-action buttons smoothly fade away
-  const subElementsOpacity = Math.max(1 - scrollProgress * 2.5, 0);
-  const subElementsTranslateY = scrollProgress * 20;
+  // Subtitle & Call-to-action buttons smoothly fade away first
+  const subElementsOpacity = Math.max(1 - scrollProgress * 2.0, 0);
+  const subElementsTranslateY = scrollProgress * 15;
 
-  // Visualizer Card Scroll-Driven Expansion: starts slightly compressed (0.93) and expands to full scale (1.0) on scroll
-  const visualizerProgress = Math.min(Math.max((scrollY - 60) / 320, 0), 1);
-  const visualizerScale = 0.93 + visualizerProgress * 0.07;
-  const visualizerShadow = `0 0 ${visualizerProgress * 45}px -10px rgba(99, 102, 241, ${0.1 + visualizerProgress * 0.25})`;
+  // Visualizer Card Scroll-Driven Expansion
+  const visualizerProgress = Math.min(Math.max((scrollY - 40) / 280, 0), 1);
+  const visualizerScale = 0.96 + visualizerProgress * 0.04;
+  const visualizerShadow = `0 0 ${visualizerProgress * 35}px -10px rgba(99, 102, 241, ${0.08 + visualizerProgress * 0.2})`;
 
   const scenarios = {
     injection: {
@@ -206,12 +206,11 @@ export const HeroShowcase: React.FC = () => {
   const currentPayload = servicePayloads[visualizerService as keyof typeof servicePayloads] || servicePayloads.gmail;
 
   return (
-    <div className="space-y-16 sm:space-y-24 py-2 sm:py-4 relative animate-entrance">
+    <div className="space-y-10 sm:space-y-14 py-2 sm:py-4 relative animate-entrance">
       
-      {/* 1. Sticky Background Title Watermark Layer (Homepage Only) */}
-      <div className="sticky top-20 sm:top-24 z-0 text-center max-w-4xl mx-auto space-y-4 sm:space-y-6 pt-2 sm:pt-4 px-2 sm:px-0 select-text">
+      {/* 1. Hero Title & Value Proposition Header Layer */}
+      <div className="relative z-0 text-center max-w-4xl mx-auto space-y-4 sm:space-y-6 pt-3 sm:pt-6 px-2 sm:px-0 select-text">
         
-        {/* Rotating Electric Lightning Beam Border Pill */}
         {/* Rotating Electric Lightning Beam Border Pill */}
         <div
           style={{
@@ -297,7 +296,7 @@ export const HeroShowcase: React.FC = () => {
           boxShadow: visualizerShadow,
           transition: 'transform 0.1s ease-out, box-shadow 0.15s ease-out'
         }}
-        className={`relative z-10 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl p-5 sm:p-8 shadow-card hover:shadow-card-hover space-y-6 transition-all duration-300 mt-6 sm:mt-8 will-change-transform ${isMounted ? 'animate-hero-visualizer' : 'opacity-0'}`}
+        className={`relative z-10 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl p-5 sm:p-8 shadow-card hover:shadow-card-hover space-y-6 transition-all duration-300 mt-4 sm:mt-6 will-change-transform ${isMounted ? 'animate-hero-visualizer' : 'opacity-0'}`}
       >
         {/* Top Controls: Service Switcher & Aperture Slider */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-100">
